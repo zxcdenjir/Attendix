@@ -10,6 +10,7 @@ using Attendix.Services;
 using Attendix.Views;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Controls.Primitives;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -67,7 +68,6 @@ public partial class HomeViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportDataAsync()
     {
-        
         try
         {
             string filePath;
@@ -92,14 +92,29 @@ public partial class HomeViewModel : ObservableObject
             {
                 filePath = files[0].Path.LocalPath;
             }
+            
+            var result = await OverlayDialog.ShowStandardAsync<PreviewDataImportView, PreviewDataImportViewModel>(
+                new PreviewDataImportViewModel(), null, new OverlayDialogOptions()
+                {
+                    Buttons = DialogButton.OKCancel,
+                    CanDragMove = true,
+                    CanLightDismiss = false,
+                    CanResize = true,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    IsCloseButtonVisible = true,
+                    Title = "Предпросмотр данных",
+                    Mode = DialogMode.None
+                });
 
+            if (result != DialogResult.OK)
+                return;
+            
             IsLoading = true;
             
-            // TODO открывается предпросмотр
+            await Task.Run(() =>
+                XlsxConverter.ConvertToCsv(filePath, GetFilePath("attendance.csv")));
 
-            await Task.Run(() => XlsxConverter.ConvertToCsv(filePath, GetFilePath("attendance.csv"))); // внутри предпросмотра
-            
-            await LoadDataAsync(); // после предпросмотра
+            await LoadDataAsync();
         }
         catch (Exception ex)
         {
