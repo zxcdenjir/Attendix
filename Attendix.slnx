@@ -1,0 +1,15 @@
+﻿<Solution>
+  <Project Path="Attendix.Android/Attendix.Android.csproj">
+    <Build Solution="Debug|*" Project="false" />
+    <Deploy Solution="Release|*" />
+  </Project>
+  <Project Path="Attendix.Browser/Attendix.Browser.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
+  <Project Path="Attendix.Desktop/Attendix.Desktop.csproj" />
+  <Project Path="Attendix.iOS/Attendix.iOS.csproj">
+    <Build Solution="Debug|*" Project="false" />
+    <Deploy Solution="Release|*" />
+  </Project>
+  <Project Path="Attendix/Attendix.csproj" />
+</Solution>

@@ -1,0 +1,67 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Attendix"
+             xmlns:semi="https://irihi.tech/semi"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:controls="clr-namespace:Attendix.Controls"
+             xmlns:u="https://irihi.tech/ursa"
+             x:Class="Attendix.App"
+             RequestedThemeVariant="Light">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <semi:SemiTheme Locale="ru-RU" />
+        <semi:UrsaSemiTheme Locale="ru-RU" />
+        <semi:SemiPopupAnimations />
+        <avalonia:MaterialIconStyles />
+        
+        <Style Selector="TextBox">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        
+        <Style Selector="DropDownButton">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        
+        <Style Selector="Popup FlyoutPresenter:focus-within /template/ Border#LayoutRoot:focus-within">
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+        
+        <Style Selector="NavigationPage:nav-bar-compact:nav-bar-inset">
+            <Style Selector="^ /template/ Border#PART_NavigationBar">
+                <Setter Property="Background" Value="{DynamicResource SemiColorPrimaryLightActive}" />
+            </Style>
+        </Style>
+        
+        <Style Selector="u|UrsaWindow /template/ u|TitleBar#PART_TitleBar">
+            <Setter Property="Margin" Value="32,0,0,0" />
+        </Style>
+        
+        <Style Selector="TableView">
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+
+        <Style Selector="TableView /template/ ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+        </Style>
+        
+        
+    </Application.Styles>
+</Application>
