@@ -27,11 +27,13 @@ public partial class HomeViewModel : ObservableObject
 
     public ObservableCollection<Student> FilteredStudents { get; } = []; //TODO: сделать фильтры (вёрстка и код)
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
-    private bool _dataIsEmpty = true;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
+    public partial bool DataIsEmpty { get; set; } = true;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
-    private bool _isLoading = false;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
+    public partial bool IsLoading { get; set; } = false;
 
     public bool IsPanelEnabled => !DataIsEmpty && !IsLoading;
 
@@ -76,8 +78,8 @@ public partial class HomeViewModel : ObservableObject
                     AllowMultiple = false,
                     FileTypeFilter =
                     [
-                        new FilePickerFileType("Таблицы") { Patterns = ["*.xlsx"] }
-                    ]
+                        new FilePickerFileType("Таблицы Excel") { Patterns = ["*.xlsx", "*.xls"] }
+                    ],
                 });
 
             if (files.Count == 0)
@@ -87,7 +89,7 @@ public partial class HomeViewModel : ObservableObject
             var tempCsv = GetFilePath("import_preview.csv");
 
             IsLoading = true;
-            await Task.Run(() => XlsxConverter.ConvertToCsv(filePath, tempCsv));
+            await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv));
             IsLoading = false;
 
             var previewVm = new PreviewDataImportViewModel(tempCsv);

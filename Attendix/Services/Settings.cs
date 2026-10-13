@@ -1,10 +1,16 @@
 using System;
+using Avalonia.Styling;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Attendix.Services;
 
-public static class Settings
+public partial class Settings : ObservableObject
 {
-    public static TimeOnly StartOfСlasses { get; set; } = new TimeOnly(9, 0);
-    public static TimeOnly EndOfСlasses { get; set; } = new TimeOnly(16, 30);
-    
+    public static Settings Current { get; } = new();
+
+    [ObservableProperty] public partial TimeOnly StartOfСlasses { get; set; } = new TimeOnly(9, 0);
+
+    [ObservableProperty] public partial TimeOnly EndOfСlasses { get; set; } = new TimeOnly(16, 30);
+
+    public ThemeVariant Theme { get; set; } = ThemeVariant.Light;
 }

@@ -10,16 +10,16 @@
              Header="Attendix">
 
     <Grid RowDefinitions="Auto, *" RowSpacing="10" Margin="20">
-        <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" ColumnSpacing="10" IsEnabled="{Binding IsPanelEnabled}">
+        <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="10" IsEnabled="{Binding IsPanelEnabled}">
             <TextBox PlaceholderText="Поиск" Name="SearchBox" />
             <DropDownButton Grid.Column="1" VerticalAlignment="Stretch" ToolTip.Tip="Фильтры" BorderThickness="0">
                 <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
             </DropDownButton>
-            <Button Grid.Column="2" VerticalAlignment="Stretch" ToolTip.Tip="Экспорт в XLSX" BorderThickness="0"
+            <Button Grid.Column="2" VerticalAlignment="Stretch" ToolTip.Tip="Экспорт в таблицу" BorderThickness="0"
                     Width="{Binding $self.Bounds.Height}" Theme="{StaticResource SolidButton}">
                 <avalonia:MaterialIcon Kind="Export" VerticalAlignment="Stretch" />
             </Button>
-            <Button Grid.Column="3" VerticalAlignment="Stretch" ToolTip.Tip="Импорт из XLSX" BorderThickness="0"
+            <Button Grid.Column="3" VerticalAlignment="Stretch" ToolTip.Tip="Импорт из таблицы" BorderThickness="0"
                     Width="{Binding $self.Bounds.Height}"
                     Command="{Binding ImportDataCommand}">
                 <avalonia:MaterialIcon Kind="Import" VerticalAlignment="Stretch" />
@@ -30,6 +30,11 @@
                     Theme="{StaticResource OutlineButton}"
                     Classes="Danger">
                 <avalonia:MaterialIcon Kind="ClearCircle" VerticalAlignment="Stretch" />
+            </Button>
+            <Button Grid.Column="5" VerticalAlignment="Stretch" ToolTip.Tip="Настройки" BorderThickness="0"
+                    Width="{Binding $self.Bounds.Height}"
+                    Command="{Binding ImportDataCommand}">
+                <avalonia:MaterialIcon Kind="Settings" VerticalAlignment="Stretch" />
             </Button>
         </Grid>
         
@@ -48,9 +53,49 @@
             
             <TableView ItemsSource="{Binding FilteredStudents}" IsVisible="{Binding !DataIsEmpty}">
                 <TableView.Columns>
-                    <TableViewColumn Header="ФИО" Binding="{Binding FullName}"></TableViewColumn>
-                    <TableViewColumn Header="Дата" Binding="{Binding Date}"></TableViewColumn>
-                </TableView.Columns>
+                <TableViewColumn Header="Дата" Binding="{Binding Date}" Width="114*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Date}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Класс" Width="96*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Group}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="ФИО" Width="290*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FullName}" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Первый приход" Width="155*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FirstArrivalDisplay}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Последний уход" Width="155*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding LastDepartureDisplay}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Посещаемость" Width="280*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Attendance}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+            </TableView.Columns>
             </TableView>
         </Panel>
         <ProgressBar Grid.Row="1" IsIndeterminate="True" Margin="0 -6 0 0" BorderThickness="2" VerticalAlignment="Top"

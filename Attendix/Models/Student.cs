@@ -37,7 +37,7 @@ public partial class Student : ObservableObject
                 }
                 else
                 {
-                    result.Add(FirstArrival >= Settings.StartOfСlasses ? "Поздний приход" : "Приход вовремя");
+                    result.Add(FirstArrival >= Settings.Current.StartOfСlasses ? "Поздний приход" : "Приход вовремя");
                 }
                 
                 if (LastDeparture == TimeOnly.MinValue)
@@ -46,7 +46,7 @@ public partial class Student : ObservableObject
                 }
                 else
                 {
-                    result.Add(LastDeparture < Settings.EndOfСlasses ? "Ранний уход" : "Уход вовремя");
+                    result.Add(LastDeparture < Settings.Current.EndOfСlasses ? "Ранний уход" : "Уход вовремя");
                 }
             }
             
@@ -56,11 +56,19 @@ public partial class Student : ObservableObject
 
     [Name("Первый приход")]
     [NotifyPropertyChangedFor(nameof(Attendance))]
+    [NotifyPropertyChangedFor(nameof(FirstArrivalDisplay))]
     [ObservableProperty]
     public partial TimeOnly FirstArrival { get; set; }
 
     [Name("Последний уход")]
     [NotifyPropertyChangedFor(nameof(Attendance))]
+    [NotifyPropertyChangedFor(nameof(LastDepartureDisplay))]
     [ObservableProperty]
     public partial TimeOnly LastDeparture { get; set; }
+    
+    [NotMapped]
+    public string FirstArrivalDisplay => FirstArrival == TimeOnly.MinValue ? "(нет)" : FirstArrival.ToString("HH:mm");
+
+    [NotMapped]
+    public string LastDepartureDisplay => LastDeparture == TimeOnly.MinValue ? "(нет)" : LastDeparture.ToString("HH:mm");
 }

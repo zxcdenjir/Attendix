@@ -3,8 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Attendix.ViewModels"
-             xmlns:u="https://irihi.tech/ursa"
-             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="450"
+             xmlns:models="clr-namespace:Attendix.Models"
+             mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="552"
              x:Class="Attendix.Views.PreviewDataImportView"
              x:DataType="vm:PreviewDataImportViewModel">
 
@@ -12,38 +12,86 @@
           MinWidth="620" MinHeight="380">
 
         <StackPanel Spacing="10">
-            <CheckBox Content="Первая строка - заголовки "
+            <CheckBox Content="Первая строка - заголовки"
                       IsChecked="{Binding HasHeader, Mode=TwoWay}" />
+            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Дата:" />
+                    <ComboBox ItemsSource="{Binding Columns}"
+                              SelectedItem="{Binding SelectedDateColumn, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="5">
+                    <TextBlock Text="Класс:" />
+                    <ComboBox ItemsSource="{Binding Columns}"
+                              SelectedItem="{Binding SelectedGroupColumn, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="5">
+                    <TextBlock Text="ФИО:" />
+                    <ComboBox ItemsSource="{Binding Columns}"
+                              SelectedItem="{Binding SelectedFullNameColumn, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Spacing="5">
+                    <TextBlock Text="Первый приход:" />
+                    <ComboBox ItemsSource="{Binding Columns}"
+                              SelectedItem="{Binding SelectedFirstArrivalColumn, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="4" Spacing="5">
+                    <TextBlock Text="Последний уход:" />
+                    <ComboBox ItemsSource="{Binding Columns}"
+                              SelectedItem="{Binding SelectedLastDepartureColumn, Mode=TwoWay}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock IsVisible="{Binding !HasFullNameMapping}"
+                       Text="Колонка с ФИО не сопоставлена — импорт будет невозможен."
+                       Foreground="{DynamicResource SemiColorDanger}" />
             <TextBlock Text="{Binding StatusText}"
                        Foreground="{DynamicResource SemiColorText2}" TextWrapping="Wrap" />
         </StackPanel>
 
-        <StackPanel Grid.Row="1">
-            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="Id:" VerticalAlignment="Center" />
-                    <ComboBox ItemsSource="{Binding Columns}"
-                              SelectedItem="{Binding SelectedIdColumn, Mode=TwoWay}" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="5">
-                    <TextBlock Text="ФИО:" VerticalAlignment="Center" />
-                    <ComboBox
-                        ItemsSource="{Binding Columns}"
-                        SelectedItem="{Binding SelectedFullNameColumn, Mode=TwoWay}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Дата/время:" VerticalAlignment="Center" />
-                    <ComboBox ItemsSource="{Binding Columns}"
-                              SelectedItem="{Binding SelectedDateTimeColumn, Mode=TwoWay}" />
-                </StackPanel>
-            </Grid>
-        </StackPanel>
-
-        <TableView ItemsSource="{Binding PreviewStudents}" Grid.Row="2" >
+        <TableView ItemsSource="{Binding PreviewStudents}" Grid.Row="2">
             <TableView.Columns>
-                <TableViewColumn Header="Id" Binding="{Binding Id}" />
-                <TableViewColumn Header="ФИО" Binding="{Binding FullName}" />
-                <TableViewColumn Header="Дата/время" Binding="{Binding Date}" />
+                <TableViewColumn Header="Дата" Binding="{Binding Date}" Width="114*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Date}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Класс" Width="96*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Group}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="ФИО" Width="290*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FullName}" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Первый приход" Width="155*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FirstArrivalDisplay}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Последний уход" Width="155*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding LastDepartureDisplay}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
+                <TableViewColumn Header="Посещаемость" Width="280*">
+                    <TableViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Attendance}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow" />
+                        </DataTemplate>
+                    </TableViewColumn.CellTemplate>
+                </TableViewColumn>
             </TableView.Columns>
         </TableView>
     </Grid>

@@ -30,25 +30,29 @@ public sealed class SourceColumn
 
 public partial class PreviewDataImportViewModel : ViewModelBase
 {
+    private static readonly CultureInfo RuCulture = CultureInfo.GetCultureInfo("ru-RU");
+
     private const int PreviewRowCount = 100;
 
     private readonly string _csvPath;
-    private List<string[]> _allRows = [];
+    private readonly List<string[]> _allRows = [];
 
     public ObservableCollection<SourceColumn> Columns { get; } = [];
     public ObservableCollection<Student> PreviewStudents { get; } = [];
 
-    [ObservableProperty] private bool _hasHeader = true;
-    [ObservableProperty] private SourceColumn? _selectedIdColumn;
-    [ObservableProperty] private SourceColumn? _selectedFullNameColumn;
-    [ObservableProperty] private SourceColumn? _selectedDateTimeColumn;
-    [ObservableProperty] private string _statusText = string.Empty;
+    [ObservableProperty] public partial bool HasHeader { get; set; } = true;
+    [ObservableProperty] public partial SourceColumn? SelectedDateColumn { get; set; }
+    [ObservableProperty] public partial SourceColumn? SelectedGroupColumn { get; set; }
+    [ObservableProperty] public partial SourceColumn? SelectedFullNameColumn { get; set; }
+    [ObservableProperty] public partial SourceColumn? SelectedFirstArrivalColumn { get; set; }
+    [ObservableProperty] public partial SourceColumn? SelectedLastDepartureColumn { get; set; }
+
+    [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
 
     public bool HasFullNameMapping => SelectedFullNameColumn is not null;
 
     public PreviewDataImportViewModel()
     {
-        // для дизайнера XAML
     }
 
     public PreviewDataImportViewModel(string csvPath)
@@ -60,7 +64,7 @@ public partial class PreviewDataImportViewModel : ViewModelBase
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = ",",
-                HasHeaderRecord = false, // читаем всё как есть, заголовок обрабатываем сами
+                HasHeaderRecord = false,
                 BadDataFound = null,
             };
 
@@ -82,7 +86,8 @@ public partial class PreviewDataImportViewModel : ViewModelBase
 
     partial void OnHasHeaderChanged(bool value) => Rebuild();
 
-    partial void OnSelectedIdColumnChanged(SourceColumn? value) => RefreshPreview();
+    partial void OnSelectedDateColumnChanged(SourceColumn? value) => RefreshPreview();
+    partial void OnSelectedGroupColumnChanged(SourceColumn? value) => RefreshPreview();
 
     partial void OnSelectedFullNameColumnChanged(SourceColumn? value)
     {
@@ -90,15 +95,18 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         RefreshPreview();
     }
 
-    partial void OnSelectedDateTimeColumnChanged(SourceColumn? value) => RefreshPreview();
+    partial void OnSelectedFirstArrivalColumnChanged(SourceColumn? value) => RefreshPreview();
+    partial void OnSelectedLastDepartureColumnChanged(SourceColumn? value) => RefreshPreview();
 
     private void Rebuild()
     {
         Columns.Clear();
         PreviewStudents.Clear();
-        SelectedIdColumn = null;
+        SelectedDateColumn = null;
+        SelectedGroupColumn = null;
         SelectedFullNameColumn = null;
-        SelectedDateTimeColumn = null;
+        SelectedFirstArrivalColumn = null;
+        SelectedLastDepartureColumn = null;
 
         if (_allRows.Count == 0)
         {
@@ -137,22 +145,27 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         }
 
         StatusText = SelectedFullNameColumn is null
-            ? "Сопоставьте колонку с ФИО — предпросмотр появится в таблице"
-            : $"Показаны первые {PreviewStudents.Count} строк — так данные лягут в таблицу";
+            ? "Сопоставьте колонку с ФИО - предпросмотр появится в таблице"
+            : $"Показаны первые {PreviewStudents.Count} строк - так данные импортируются в таблицу";
     }
 
     private Student? ParseRow(string[] row)
     {
         var fullName = GetCell(row, SelectedFullNameColumn)?.Trim();
         if (string.IsNullOrWhiteSpace(fullName))
-            return null; // пустые строки не импортируем
+            return null;
 
         return new Student
         {
+            Date = TryParseDateOnly(GetCell(row, SelectedDateColumn), out var date) ? date : default,
+            Group = GetCell(row, SelectedGroupColumn)?.Trim() ?? string.Empty,
             FullName = fullName,
-            Id = int.TryParse(GetCell(row, SelectedIdColumn)?.Trim(),
-                    NumberStyles.Any, CultureInfo.InvariantCulture, out var id) ? id : 0,
-            Date = TryParseDateTime(GetCell(row, SelectedDateTimeColumn), out var dt) ? dt : default,
+            FirstArrival = TryParseTimeOnly(GetCell(row, SelectedFirstArrivalColumn), out var arrival)
+                ? arrival
+                : default,
+            LastDeparture = TryParseTimeOnly(GetCell(row, SelectedLastDepartureColumn), out var departure)
+                ? departure
+                : default,
         };
     }
 
@@ -163,16 +176,18 @@ public partial class PreviewDataImportViewModel : ViewModelBase
             throw new InvalidOperationException("Не сопоставлена колонка с ФИО.");
 
         return DataRows().Select(ParseRow)
-                         .Where(s => s is not null)
-                         .Select(s => s!)
-                         .ToList();
+            .Where(s => s is not null)
+            .Select(s => s!)
+            .ToList();
     }
 
     private void AutoGuessMapping()
     {
-        SelectedIdColumn = Guess("id", "номер");
-        SelectedFullNameColumn = Guess("фио", "фамил", "имя", "name", "студент");
-        SelectedDateTimeColumn = Guess("дата", "время", "date", "time");
+        SelectedDateColumn = Guess("дата", "date");
+        SelectedGroupColumn = Guess("класс", "групп", "class", "group");
+        SelectedFullNameColumn = Guess("фио", "фамил", "имя", "name", "учащ", "студент");
+        SelectedFirstArrivalColumn = Guess("первый приход", "приход", "прибы", "arriv");
+        SelectedLastDepartureColumn = Guess("последний уход", "уход", "убыл", "depart", "leav");
     }
 
     private SourceColumn Guess(params string[] keywords)
@@ -196,17 +211,43 @@ public partial class PreviewDataImportViewModel : ViewModelBase
     private static string? GetCell(string[] row, SourceColumn? column)
         => column is { Index: >= 0 } ? GetCell(row, column.Index) : null;
 
-    private static bool TryParseDateTime(string? value, out DateTime result)
+    private static bool TryParseDateOnly(string? value, out DateOnly result)
     {
+        result = default;
         value = value?.Trim();
+        if (string.IsNullOrEmpty(value))
+            return false;
 
         if (DateTime.TryParseExact(value, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out result))
+                DateTimeStyles.None, out var dt) ||
+            DateTime.TryParse(value, RuCulture, DateTimeStyles.None, out dt) ||
+            DateTime.TryParse(value, CultureInfo.CurrentCulture, DateTimeStyles.None, out dt) ||
+            DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+        {
+            result = DateOnly.FromDateTime(dt);
             return true;
-        if (DateTime.TryParse(value, CultureInfo.CurrentCulture, DateTimeStyles.None, out result))
+        }
+
+        return false;
+    }
+
+    private static bool TryParseTimeOnly(string? value, out TimeOnly result)
+    {
+        result = default;
+        value = value?.Trim().Trim('(', ')', ' ').Trim();
+        if (string.IsNullOrEmpty(value) || value.Equals("нет", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (TimeOnly.TryParse(value, RuCulture, out result) ||
+            TimeOnly.TryParse(value, CultureInfo.CurrentCulture, out result) ||
+            TimeOnly.TryParse(value, CultureInfo.InvariantCulture, out result))
             return true;
-        if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+
+        if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+        {
+            result = TimeOnly.FromDateTime(dt);
             return true;
+        }
 
         return false;
     }
