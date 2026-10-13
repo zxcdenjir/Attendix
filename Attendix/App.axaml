@@ -62,6 +62,16 @@
             <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
         </Style>
         
+        <Style Selector="TableView /template/ Border">
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
         
+        <Style Selector="u|StandardDialogControl.PreviewImport">
+            <Setter Property="Height" Value="552"/>
+            <Setter Property="Width" Value="880"/>
+            <Setter Property="MinHeight" Value="552"/>
+            <Setter Property="MinWidth" Value="880"/>
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
     </Application.Styles>
 </Application>

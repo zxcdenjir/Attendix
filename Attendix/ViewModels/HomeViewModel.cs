@@ -70,49 +70,73 @@ public partial class HomeViewModel : ObservableObject
     {
         try
         {
-            string filePath;
             var files = await TopLevel.GetTopLevel(MainView.Current)!.StorageProvider.OpenFilePickerAsync(
                 new FilePickerOpenOptions
                 {
                     AllowMultiple = false,
                     FileTypeFilter =
                     [
-                        new FilePickerFileType("Таблицы")
-                        {
-                            Patterns = ["*.xlsx"]
-                        }
+                        new FilePickerFileType("Таблицы") { Patterns = ["*.xlsx"] }
                     ]
                 });
 
             if (files.Count == 0)
-            {
                 return;
-            }
-            else
-            {
-                filePath = files[0].Path.LocalPath;
-            }
-            
+
+            var filePath = files[0].Path.LocalPath;
+            var tempCsv = GetFilePath("import_preview.csv");
+
+            IsLoading = true;
+            await Task.Run(() => XlsxConverter.ConvertToCsv(filePath, tempCsv));
+            IsLoading = false;
+
+            var previewVm = new PreviewDataImportViewModel(tempCsv);
             var result = await OverlayDialog.ShowStandardAsync<PreviewDataImportView, PreviewDataImportViewModel>(
-                new PreviewDataImportViewModel(), null, new OverlayDialogOptions()
+                previewVm, null, new OverlayDialogOptions()
                 {
                     Buttons = DialogButton.OKCancel,
                     CanDragMove = true,
                     CanLightDismiss = false,
                     CanResize = true,
                     HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    VerticalScrollBarVisibility =  ScrollBarVisibility.Disabled,
                     IsCloseButtonVisible = true,
-                    Title = "Предпросмотр данных",
-                    Mode = DialogMode.None
+                    Title = $"Предпросмотр данных - {Path.GetFileName(filePath)}",
+                    Mode = DialogMode.None,
+                    FullScreen = false,
+                    StyleClass = "PreviewImport"
                 });
 
             if (result != DialogResult.OK)
+            {
+                try { File.Delete(tempCsv); }
+                catch
+                {
+                    // ignored
+                }
+
                 return;
-            
+            }
+
             IsLoading = true;
-            
-            await Task.Run(() =>
-                XlsxConverter.ConvertToCsv(filePath, GetFilePath("attendance.csv")));
+
+            List<Student> students;
+            try
+            {
+                students = await Task.Run(previewVm.GetStudents);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MainView.Current.ShowToast(ex.Message, NotificationType.Warning);
+                return;
+            }
+
+            await Task.Run(() => WriteStudentsToCsv(students, GetFilePath("attendance.csv")));
+            try { File.Delete(tempCsv); }
+            catch
+            {
+                // ignored
+            }
 
             await LoadDataAsync();
         }
@@ -125,6 +149,15 @@ public partial class HomeViewModel : ObservableObject
             IsLoading = false;
         }
     }
+
+    private static void WriteStudentsToCsv(List<Student> students, string path)
+    {
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "," };
+        using var writer = new StreamWriter(path, false, System.Text.Encoding.UTF8);
+        using var csv = new CsvWriter(writer, config);
+        csv.WriteRecords(students);
+    }
+
 
     [RelayCommand]
     private async Task ClearDataAsync()

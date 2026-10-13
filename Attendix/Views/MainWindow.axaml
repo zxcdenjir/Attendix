@@ -8,7 +8,8 @@
               mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
               x:Class="Attendix.Views.MainWindow"
               Icon="/Assets/avalonia-logo.ico"
-              Title="Attendix">
+              Title="Attendix"
+              WindowStartupLocation="CenterScreen">
     <u:UrsaWindow.RightContent>
         <u:ThemeToggleButton
             Name="ThemeToggleButton"

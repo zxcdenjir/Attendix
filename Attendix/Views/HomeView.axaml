@@ -49,7 +49,7 @@
             <TableView ItemsSource="{Binding FilteredStudents}" IsVisible="{Binding !DataIsEmpty}">
                 <TableView.Columns>
                     <TableViewColumn Header="ФИО" Binding="{Binding FullName}"></TableViewColumn>
-                    <TableViewColumn Header="Дата" Binding="{Binding DateTime}"></TableViewColumn>
+                    <TableViewColumn Header="Дата" Binding="{Binding Date}"></TableViewColumn>
                 </TableView.Columns>
             </TableView>
         </Panel>
