@@ -59,7 +59,8 @@ public partial class HomeViewModel : ObservableObject
     
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is not (nameof(Settings.StartOfClasses) or nameof(Settings.EndOfClasses)))
+        if (e.PropertyName is not (nameof(Settings.StartOfClasses) or nameof(Settings.EndOfClasses)
+            or nameof(Settings.HighlightCells)))
             return;
 
         foreach (var student in Students)
@@ -178,6 +179,45 @@ public partial class HomeViewModel : ObservableObject
             }
 
             await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            MainView.Current.ShowToast(ex.InnerException?.Message ?? ex.Message, NotificationType.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task ExportToXlsxAsync()
+    {
+        var students = FilteredStudents.ToList();
+        if (students.Count == 0)
+        {
+            MainView.Current.ShowToast("Нет данных для экспорта", NotificationType.Warning);
+            return;
+        }
+
+        try
+        {
+            var top = TopLevel.GetTopLevel(MainView.Current)!;
+            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Экспорт отчета о посещаемости",
+                SuggestedFileName = $"Отчет о посещаемости {DateTime.Now:dd.MM.yyyy}",
+                DefaultExtension = "xlsx",
+                FileTypeChoices = [new FilePickerFileType("Книга Excel") { Patterns = ["*.xlsx"] }],
+                ShowOverwritePrompt = true,
+            });
+            if (file is null)
+                return;
+
+            var path = file.Path.LocalPath;
+            IsLoading = true;
+            await Task.Run(() => AttendanceReportExporter.Export(students, path));
+            MainView.Current.ShowToast("Отчет успешно сохранен", NotificationType.Success);
         }
         catch (Exception ex)
         {

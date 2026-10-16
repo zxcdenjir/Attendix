@@ -32,12 +32,16 @@ public partial class Settings : ObservableObject
     [ObservableProperty] public partial TimeOnly EndOfClasses { get; set; } = new TimeOnly(16, 40);
 
     [ObservableProperty] public partial ThemeVariant Theme { get; set; } = ThemeVariant.Light;
+    
+    [ObservableProperty]
+    public partial bool HighlightCells { get; set; } = true;
 
     [JsonConstructor]
     private Settings() { }
 
     partial void OnStartOfClassesChanged(TimeOnly value) => SaveIfLoaded();
     partial void OnEndOfClassesChanged(TimeOnly value) => SaveIfLoaded();
+    partial void OnHighlightCellsChanged(bool value) => SaveIfLoaded();
 
     partial void OnThemeChanged(ThemeVariant value)
     {
@@ -65,6 +69,7 @@ public partial class Settings : ObservableObject
             _loading = true;
             StartOfClasses = loaded.StartOfClasses;
             EndOfClasses = loaded.EndOfClasses;
+            HighlightCells = loaded.HighlightCells;
             Theme = loaded.Theme;
         }
         catch

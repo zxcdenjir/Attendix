@@ -35,7 +35,7 @@
             <Setter Property="Padding" Value="10" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
-        
+
         <Style Selector="u|TimeOnlyPicker">
             <Setter Property="Padding" Value="10" />
             <Setter Property="CornerRadius" Value="10" />
@@ -45,9 +45,9 @@
             <Setter Property="Padding" Value="10" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
-        
+
         <Style Selector="Popup">
-            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="Cursor" Value="Arrow" />
         </Style>
 
         <Style Selector="Popup FlyoutPresenter:focus-within /template/ Border#LayoutRoot:focus-within">
@@ -91,7 +91,7 @@
         <Style Selector="TableViewColumnHeader TextBlock">
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        
+
         <Style Selector="TableViewRow:selected /template/ Border#PART_ContentBorder">
             <Setter Property="Background" Value="Transparent" />
         </Style>
@@ -105,15 +105,16 @@
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="DialogBlurBg" Color="#57FFFFFF" />
+                    <SolidColorBrush x:Key="AttendixLateBrush" Color="#80FFEB3B" />
+                    <SolidColorBrush x:Key="AttendixEarlyBrush" Color="#80FFEB3B" />
+                    <SolidColorBrush x:Key="AttendixAbsentBrush" Color="#52EF4444" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="DialogBlurBg" Color="#5735363c" />
+                    <SolidColorBrush x:Key="AttendixLateBrush" Color="#80FFEB3B" />
+                    <SolidColorBrush x:Key="AttendixEarlyBrush" Color="#80FFEB3B" />
+                    <SolidColorBrush x:Key="AttendixAbsentBrush" Color="#52EF4444" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-
-            
-
         </ResourceDictionary>
     </Application.Resources>
 </Application>

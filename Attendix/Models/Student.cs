@@ -55,16 +55,12 @@ public partial class Student : ObservableObject
     }
 
     [Name("Первый приход")]
-    [NotifyPropertyChangedFor(nameof(Attendance))]
-    [NotifyPropertyChangedFor(nameof(FirstArrivalDisplay))]
-    [NotifyPropertyChangedFor(nameof(Attendance), nameof(IsLateArrival), nameof(IsAbsent))]
+    [NotifyPropertyChangedFor(nameof(Attendance), nameof(IsLateArrival), nameof(IsAbsent), nameof(FirstArrivalDisplay))]
     [ObservableProperty]
     public partial TimeOnly FirstArrival { get; set; }
 
     [Name("Последний уход")]
-    [NotifyPropertyChangedFor(nameof(Attendance))]
-    [NotifyPropertyChangedFor(nameof(LastDepartureDisplay))]
-    [NotifyPropertyChangedFor(nameof(Attendance), nameof(IsLateArrival), nameof(IsAbsent))]
+    [NotifyPropertyChangedFor(nameof(Attendance), nameof(IsEarlyLeave), nameof(IsAbsent), nameof(LastDepartureDisplay))]
     [ObservableProperty]
     public partial TimeOnly LastDeparture { get; set; }
 
@@ -83,11 +79,18 @@ public partial class Student : ObservableObject
     [NotMapped]
     public bool IsEarlyLeave => LastDeparture != TimeOnly.MinValue && LastDeparture < Settings.Current.EndOfClasses;
 
+    [NotMapped] public bool LateHighlight => IsLateArrival && Settings.Current.HighlightCells;
+    [NotMapped] public bool EarlyHighlight => IsEarlyLeave && Settings.Current.HighlightCells;
+    [NotMapped] public bool AbsentHighlight => IsAbsent && Settings.Current.HighlightCells;
+
     public void RefreshAttendance()
     {
         OnPropertyChanged(nameof(Attendance));
         OnPropertyChanged(nameof(IsLateArrival));
         OnPropertyChanged(nameof(IsEarlyLeave));
         OnPropertyChanged(nameof(IsAbsent));
+        OnPropertyChanged(nameof(LateHighlight));
+        OnPropertyChanged(nameof(EarlyHighlight));
+        OnPropertyChanged(nameof(AbsentHighlight));
     }
 }

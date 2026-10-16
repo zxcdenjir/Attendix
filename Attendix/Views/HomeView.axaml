@@ -7,32 +7,55 @@
              xmlns:u="https://irihi.tech/ursa"
              xmlns:services="clr-namespace:Attendix.Services"
              xmlns:models="clr-namespace:Attendix.Models"
+             xmlns:controls="clr-namespace:Attendix.Controls"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
              x:Class="Attendix.Views.HomeView"
              x:DataType="viewModels:HomeViewModel"
              Header="Attendix">
     <ContentPage.Resources>
-        <services:AttendanceCellBrushConverter x:Key="AttendanceCellBrush" />
-
         <ControlTheme x:Key="ArrivalCellTheme"
                       TargetType="TableViewCell"
                       BasedOn="{StaticResource {x:Type TableViewCell}}"
                       x:DataType="models:Student">
-            <Setter Property="Background"
-                    Value="{Binding Converter={StaticResource AttendanceCellBrush}, ConverterParameter=Arrival}" />
+            <Style Selector="^">
+                <Setter Property="controls:DataClasses.Late" Value="{Binding LateHighlight}" />
+                <Setter Property="controls:DataClasses.Absent" Value="{Binding AbsentHighlight}" />
+            </Style>
         </ControlTheme>
 
         <ControlTheme x:Key="DepartureCellTheme"
                       TargetType="TableViewCell"
                       BasedOn="{StaticResource {x:Type TableViewCell}}"
                       x:DataType="models:Student">
-            <Setter Property="Background"
-                    Value="{Binding Converter={StaticResource AttendanceCellBrush}, ConverterParameter=Departure}" />
+            <Style Selector="^">
+                <Setter Property="controls:DataClasses.Early" Value="{Binding EarlyHighlight}" />
+                <Setter Property="controls:DataClasses.Absent" Value="{Binding AbsentHighlight}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="AttendanceCellTheme"
+                      TargetType="TableViewCell"
+                      BasedOn="{StaticResource {x:Type TableViewCell}}"
+                      x:DataType="models:Student">
+            <Style Selector="^">
+                <Setter Property="controls:DataClasses.Absent" Value="{Binding IsAbsent}" />
+            </Style>
         </ControlTheme>
     </ContentPage.Resources>
     <ContentPage.Styles>
         <Style Selector="u|FormItem">
             <Setter Property="Margin" Value="0" />
+        </Style>
+
+        <!-- заливка ячеек; DynamicResource сам обновится при смене темы -->
+        <Style Selector="TableViewCell.absent">
+            <Setter Property="Background" Value="{DynamicResource AttendixAbsentBrush}" />
+        </Style>
+        <Style Selector="TableViewCell.late">
+            <Setter Property="Background" Value="{DynamicResource AttendixLateBrush}" />
+        </Style>
+        <Style Selector="TableViewCell.early">
+            <Setter Property="Background" Value="{DynamicResource AttendixEarlyBrush}" />
         </Style>
     </ContentPage.Styles>
     <Grid RowDefinitions="Auto, *" RowSpacing="10" Margin="20">
@@ -64,7 +87,8 @@
                 </DropDownButton.Flyout>
             </DropDownButton>
             <Button Grid.Column="2" VerticalAlignment="Stretch" ToolTip.Tip="Экспорт в таблицу" BorderThickness="0"
-                    Width="{Binding $self.Bounds.Height}" Theme="{StaticResource SolidButton}">
+                    Width="{Binding $self.Bounds.Height}" Theme="{StaticResource SolidButton}"
+                    Command="{Binding ExportToXlsxCommand}">
                 <avalonia:MaterialIcon Kind="Export" VerticalAlignment="Stretch" />
             </Button>
             <Button Grid.Column="3" VerticalAlignment="Stretch" ToolTip.Tip="Импорт из таблицы" BorderThickness="0"
@@ -100,6 +124,8 @@
                                               DisplayFormat="HH:mm" PanelFormat="HH mm"
                                               CornerRadius="10" Padding="10"
                                               SelectedTime="{Binding EndOfClasses, Mode=TwoWay}" />
+                            <CheckBox Content="Подсвечивать клетки"
+                                      IsChecked="{Binding HighlightCells, Mode=TwoWay}" />
                         </u:Form>
                     </Flyout>
                 </DropDownButton.Flyout>
@@ -166,9 +192,10 @@
                             </DataTemplate>
                         </TableViewColumn.CellTemplate>
                     </TableViewColumn>
+
                     <TableViewColumn Header="Посещаемость" Width="280*">
                         <TableViewColumn.CellTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="models:Student">
                                 <TextBlock Text="{Binding Attendance}" TextTrimming="CharacterEllipsis"
                                            TextWrapping="WrapWithOverflow" />
                             </DataTemplate>

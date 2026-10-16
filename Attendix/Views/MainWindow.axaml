@@ -15,6 +15,7 @@
         <u:ThemeToggleButton
             Name="ThemeToggleButton"
             Mode="Indicator"
+            CornerRadius="10"
             SelectedTheme="{Binding Source={x:Static services:Settings.Current}, Path=Theme, Mode=TwoWay}"/>
     </u:UrsaWindow.RightContent>
     <views:MainView />

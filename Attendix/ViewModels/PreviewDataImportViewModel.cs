@@ -34,7 +34,7 @@ public partial class PreviewDataImportViewModel : ViewModelBase
 
     private const int PreviewRowCount = 100;
 
-    private readonly string _csvPath;
+    private readonly string _csvPath = null!;
     private readonly List<string[]> _allRows = [];
 
     public ObservableCollection<SourceColumn> Columns { get; } = [];
