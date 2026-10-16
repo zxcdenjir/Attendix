@@ -10,8 +10,11 @@ namespace Attendix.Services;
 
 public static class ExcelConverter
 {
-     /// <summary>Читает xls/xlsx и пишет csv, отрезая skipRows строк шапки отчёта сверху.</summary>
-    public static void ConvertToCsv(string excelPath, string csvPath, int skipRows = 10, int[]? columnsToUpper = null)
+    /// <summary>Читает xls/xlsx и пишет csv, отрезая skipRows строк шапки отчёта сверху.</summary>
+    /// <param name="columnsToUpper">Индексы колонок (с нуля), значения которых приводятся к верхнему регистру (кроме заголовка).</param>
+    /// <param name="excludeColumns">Названия колонок из шапки, которые не должны попадать в CSV.</param>
+    public static void ConvertToCsv(string excelPath, string csvPath, int skipRows = 10,
+        int[]? columnsToUpper = null, string[]? excludeColumns = null)
     {
         using var stream = File.Open(excelPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         using var reader = ExcelReaderFactory.CreateReader(stream);
@@ -62,14 +65,24 @@ public static class ExcelConverter
         if (header == null)
             return;
 
-        var kept = Enumerable.Range(0, header.Length).Where(usedColumns.Contains).ToArray();
+        var excluded = new HashSet<int>();
+        if (excludeColumns is { Length: > 0 })
+        {
+            for (var c = 0; c < header.Length; c++)
+                if (excludeColumns.Contains(header[c].Trim(), StringComparer.OrdinalIgnoreCase))
+                    excluded.Add(c);
+        }
+
+        var kept = Enumerable.Range(0, header.Length)
+            .Where(c => usedColumns.Contains(c) && !excluded.Contains(c))
+            .ToArray();
 
         using var writer = new StreamWriter(csvPath, false, Encoding.UTF8);
         WriteRow(writer, kept.Select(c => header[c]));
         foreach (var row in dataRows)
             WriteRow(writer, kept.Select(c => row[c]));
     }
-     
+
     private static void WriteRow(TextWriter writer, IEnumerable<string> cells) =>
         writer.WriteLine(string.Join(",", cells.Select(EscapeCsvField)));
 

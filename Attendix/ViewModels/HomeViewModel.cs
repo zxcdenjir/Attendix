@@ -29,7 +29,7 @@ public partial class HomeViewModel : ObservableObject
     
     public ObservableCollection<string> Groups { get; } = [];
     
-    [ObservableProperty] public partial string? SelectedGroup { get; set; }
+    
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
@@ -46,6 +46,8 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty] public partial bool ShowAbsent { get; set; } = true;
     [ObservableProperty] public partial bool ShowLate { get; set; } = true;
     [ObservableProperty] public partial bool ShowLeft { get; set; } = true;
+    
+    [ObservableProperty] public partial string? SelectedGroup { get; set; }
 
     public HomeViewModel()
     {
@@ -105,7 +107,7 @@ public partial class HomeViewModel : ObservableObject
             var tempCsv = GetFilePath("import_preview.csv");
 
             IsLoading = true;
-            await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv, 10, [2]));
+            await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv, 10, [2], ["Посещаемость"]));
             IsLoading = false;
 
             var previewVm = new PreviewDataImportViewModel(tempCsv);
@@ -213,6 +215,11 @@ public partial class HomeViewModel : ObservableObject
     private void ApplyFilters()
     {
         var students = Students.ToList();
+        
+        if (!string.IsNullOrEmpty(SelectedGroup))
+        {
+            students = students.Where(s => s.Group.Equals(SelectedGroup, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        }
 
         if (!string.IsNullOrEmpty(SearchText))
         {
@@ -231,11 +238,11 @@ public partial class HomeViewModel : ObservableObject
         }
         if (!ShowLate)
         {
-            students = students.Where(s => s.FirstArrival == TimeOnly.MinValue || s.FirstArrival < Settings.Current.StartOfСlasses).ToList();
+            students = students.Where(s => s.FirstArrival == TimeOnly.MinValue || s.FirstArrival < Settings.Current.StartOfClasses).ToList();
         }
         if (!ShowLeft)
         {
-            students = students.Where(s => s.LastDeparture == TimeOnly.MinValue || s.LastDeparture > Settings.Current.EndOfСlasses).ToList();
+            students = students.Where(s => s.LastDeparture == TimeOnly.MinValue || s.LastDeparture > Settings.Current.EndOfClasses).ToList();
         }
 
         FilteredStudents.Clear();
@@ -286,6 +293,11 @@ public partial class HomeViewModel : ObservableObject
     {
         ApplyFilters();
     }
+    
+    partial void OnSelectedGroupChanged(string? value)
+    {
+        ApplyFilters();
+    }
 
     [RelayCommand]
     private void ResetFilters()
@@ -293,5 +305,6 @@ public partial class HomeViewModel : ObservableObject
         ShowAbsent = true;
         ShowLate = true;
         ShowLeft = true;
+        SelectedGroup = null;
     }
 }

@@ -35,10 +35,19 @@
             <Setter Property="Padding" Value="10" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
+        
+        <Style Selector="u|TimeOnlyPicker">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
 
         <Style Selector="DropDownButton">
             <Setter Property="Padding" Value="10" />
             <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        
+        <Style Selector="Popup">
+            <Setter Property="Cursor" Value="Arrow"/>
         </Style>
 
         <Style Selector="Popup FlyoutPresenter:focus-within /template/ Border#LayoutRoot:focus-within">

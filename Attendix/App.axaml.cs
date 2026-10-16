@@ -1,3 +1,4 @@
+using Attendix.Services;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -20,6 +21,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        Settings.Current.Load();
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

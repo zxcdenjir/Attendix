@@ -5,6 +5,7 @@
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
               xmlns:views="using:Attendix.Views"
               xmlns:u="https://irihi.tech/ursa"
+              xmlns:services="clr-namespace:Attendix.Services"
               mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
               x:Class="Attendix.Views.MainWindow"
               Icon="/Assets/avalonia-logo.ico"
@@ -13,7 +14,8 @@
     <u:UrsaWindow.RightContent>
         <u:ThemeToggleButton
             Name="ThemeToggleButton"
-            Mode="Indicator" />
+            Mode="Indicator"
+            SelectedTheme="{Binding Source={x:Static services:Settings.Current}, Path=Theme, Mode=TwoWay}"/>
     </u:UrsaWindow.RightContent>
     <views:MainView />
 </u:UrsaWindow>

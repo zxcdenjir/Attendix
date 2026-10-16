@@ -37,7 +37,7 @@ public partial class Student : ObservableObject
                 }
                 else
                 {
-                    result.Add(FirstArrival >= Settings.Current.StartOfСlasses ? "Поздний приход" : "Приход вовремя");
+                    result.Add(FirstArrival >= Settings.Current.StartOfClasses ? "Поздний приход" : "Приход вовремя");
                 }
                 
                 if (LastDeparture == TimeOnly.MinValue)
@@ -46,7 +46,7 @@ public partial class Student : ObservableObject
                 }
                 else
                 {
-                    result.Add(LastDeparture < Settings.Current.EndOfСlasses ? "Ранний уход" : "Уход вовремя");
+                    result.Add(LastDeparture < Settings.Current.EndOfClasses ? "Ранний уход" : "Уход вовремя");
                 }
             }
             
