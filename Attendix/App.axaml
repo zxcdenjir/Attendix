@@ -82,7 +82,7 @@
         <Style Selector="TableViewColumnHeader TextBlock">
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        
+
         <!--<Style Selector="u|StandardDialogControl:modal /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DialogBlurBg}" />
         </Style>
@@ -92,18 +92,20 @@
         </Style>-->
     </Application.Styles>
 
+
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="DialogBlurBg" Color="#57FFFFFF"></SolidColorBrush>
+                    <SolidColorBrush x:Key="DialogBlurBg" Color="#57FFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="DialogBlurBg" Color="#5735363c"></SolidColorBrush>
+                    <SolidColorBrush x:Key="DialogBlurBg" Color="#5735363c" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
             
-            
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

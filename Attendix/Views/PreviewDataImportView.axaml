@@ -12,8 +12,6 @@
           MinWidth="620" MinHeight="380">
 
         <StackPanel Spacing="10">
-            <CheckBox Content="Первая строка - заголовки"
-                      IsChecked="{Binding HasHeader, Mode=TwoWay}" />
             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
                 <StackPanel Spacing="5">
                     <TextBlock Text="Дата:" />

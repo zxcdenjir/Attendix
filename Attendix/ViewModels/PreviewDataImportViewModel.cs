@@ -40,7 +40,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
     public ObservableCollection<SourceColumn> Columns { get; } = [];
     public ObservableCollection<Student> PreviewStudents { get; } = [];
 
-    [ObservableProperty] public partial bool HasHeader { get; set; } = true;
     [ObservableProperty] public partial SourceColumn? SelectedDateColumn { get; set; }
     [ObservableProperty] public partial SourceColumn? SelectedGroupColumn { get; set; }
     [ObservableProperty] public partial SourceColumn? SelectedFullNameColumn { get; set; }
@@ -84,8 +83,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         }
     }
 
-    partial void OnHasHeaderChanged(bool value) => Rebuild();
-
     partial void OnSelectedDateColumnChanged(SourceColumn? value) => RefreshPreview();
     partial void OnSelectedGroupColumnChanged(SourceColumn? value) => RefreshPreview();
 
@@ -118,7 +115,7 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         Columns.Add(SourceColumn.None);
         for (var c = 0; c < columnCount; c++)
         {
-            var header = HasHeader && !string.IsNullOrWhiteSpace(GetCell(_allRows[0], c))
+            var header = !string.IsNullOrWhiteSpace(GetCell(_allRows[0], c))
                 ? GetCell(_allRows[0], c)!.Trim()
                 : $"Колонка {c + 1}";
             Columns.Add(new SourceColumn(c, header));
@@ -128,7 +125,7 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         RefreshPreview();
     }
 
-    private IEnumerable<string[]> DataRows() => HasHeader ? _allRows.Skip(1) : _allRows;
+    private IEnumerable<string[]> DataRows() => _allRows.Skip(1);
 
     private void RefreshPreview()
     {

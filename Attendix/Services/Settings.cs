@@ -12,5 +12,5 @@ public partial class Settings : ObservableObject
 
     [ObservableProperty] public partial TimeOnly EndOfСlasses { get; set; } = new TimeOnly(16, 30);
 
-    public ThemeVariant Theme { get; set; } = ThemeVariant.Light;
+    [ObservableProperty] public partial ThemeVariant Theme { get; set; } = ThemeVariant.Light;
 }

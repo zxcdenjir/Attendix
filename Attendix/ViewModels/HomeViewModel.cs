@@ -25,7 +25,11 @@ public partial class HomeViewModel : ObservableObject
 {
     private ObservableCollection<Student> Students { get; } = [];
 
-    public ObservableCollection<Student> FilteredStudents { get; } = []; //TODO: сделать фильтры (вёрстка и код)
+    public ObservableCollection<Student> FilteredStudents { get; } = [];
+    
+    public ObservableCollection<string> Groups { get; } = [];
+    
+    [ObservableProperty] public partial string? SelectedGroup { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
@@ -36,6 +40,12 @@ public partial class HomeViewModel : ObservableObject
     public partial bool IsLoading { get; set; } = false;
 
     public bool IsPanelEnabled => !DataIsEmpty && !IsLoading;
+
+    [ObservableProperty] public partial string SearchText { get; set; }
+
+    [ObservableProperty] public partial bool ShowAbsent { get; set; } = true;
+    [ObservableProperty] public partial bool ShowLate { get; set; } = true;
+    [ObservableProperty] public partial bool ShowLeft { get; set; } = true;
 
     public HomeViewModel()
     {
@@ -54,6 +64,12 @@ public partial class HomeViewModel : ObservableObject
             foreach (var record in records)
             {
                 Students.Add(record);
+            }
+            
+            Groups.Clear();
+            foreach (var student in Students.Select(x => x.Group).Distinct())
+            {
+                Groups.Add(student);
             }
 
             ApplyFilters();
@@ -89,7 +105,7 @@ public partial class HomeViewModel : ObservableObject
             var tempCsv = GetFilePath("import_preview.csv");
 
             IsLoading = true;
-            await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv));
+            await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv, 10, [2]));
             IsLoading = false;
 
             var previewVm = new PreviewDataImportViewModel(tempCsv);
@@ -101,7 +117,7 @@ public partial class HomeViewModel : ObservableObject
                     CanLightDismiss = false,
                     CanResize = true,
                     HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                    VerticalScrollBarVisibility =  ScrollBarVisibility.Disabled,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
                     IsCloseButtonVisible = true,
                     Title = $"Предпросмотр данных - {Path.GetFileName(filePath)}",
                     Mode = DialogMode.None,
@@ -111,7 +127,10 @@ public partial class HomeViewModel : ObservableObject
 
             if (result != DialogResult.OK)
             {
-                try { File.Delete(tempCsv); }
+                try
+                {
+                    File.Delete(tempCsv);
+                }
                 catch
                 {
                     // ignored
@@ -134,7 +153,10 @@ public partial class HomeViewModel : ObservableObject
             }
 
             await Task.Run(() => WriteStudentsToCsv(students, GetFilePath("attendance.csv")));
-            try { File.Delete(tempCsv); }
+            try
+            {
+                File.Delete(tempCsv);
+            }
             catch
             {
                 // ignored
@@ -190,8 +212,34 @@ public partial class HomeViewModel : ObservableObject
 
     private void ApplyFilters()
     {
+        var students = Students.ToList();
+
+        if (!string.IsNullOrEmpty(SearchText))
+        {
+            var words = SearchText.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim())
+                .Where(w => w.Length > 0).ToList();
+            students = students.Where(s =>
+                    words.Any(w =>
+                        s.FullName.Contains(w, StringComparison.CurrentCultureIgnoreCase) ||
+                        s.Date.ToString("dd.MM.yyyy").Contains(w, StringComparison.CurrentCultureIgnoreCase) ||
+                        s.Group.Contains(w, StringComparison.CurrentCultureIgnoreCase))).ToList();
+        }
+        
+        if (!ShowAbsent)
+        {
+            students = students.Where(s => s.FirstArrival != TimeOnly.MinValue || s.LastDeparture != TimeOnly.MinValue).ToList();
+        }
+        if (!ShowLate)
+        {
+            students = students.Where(s => s.FirstArrival == TimeOnly.MinValue || s.FirstArrival < Settings.Current.StartOfСlasses).ToList();
+        }
+        if (!ShowLeft)
+        {
+            students = students.Where(s => s.LastDeparture == TimeOnly.MinValue || s.LastDeparture > Settings.Current.EndOfСlasses).ToList();
+        }
+
         FilteredStudents.Clear();
-        foreach (var student in Students)
+        foreach (var student in students)
         {
             FilteredStudents.Add(student);
         }
@@ -218,4 +266,32 @@ public partial class HomeViewModel : ObservableObject
     }
 
     public static string GetFilePath(string fileName) => Path.Combine(GetAppDataFolder(), fileName);
+
+    partial void OnSearchTextChanged(string? value)
+    {
+        ApplyFilters();
+    }
+    
+    partial void OnShowAbsentChanged(bool value)
+    {
+        ApplyFilters();
+    }
+
+    partial void OnShowLateChanged(bool value)
+    {
+        ApplyFilters();
+    }
+
+    partial void OnShowLeftChanged(bool value)
+    {
+        ApplyFilters();
+    }
+
+    [RelayCommand]
+    private void ResetFilters()
+    {
+        ShowAbsent = true;
+        ShowLate = true;
+        ShowLeft = true;
+    }
 }

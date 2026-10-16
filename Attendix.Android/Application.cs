@@ -2,6 +2,7 @@
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
+using Fluid.Avalonia.Acrylic;
 
 namespace Attendix.Android
 {
@@ -15,7 +16,8 @@ namespace Attendix.Android
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
             return base.CustomizeAppBuilder(builder)
-            .WithInterFont();
+                .UseAcrylicPerformanceDefaults()
+                .WithInterFont();
         }
     }
 }
