@@ -24,23 +24,21 @@
                 <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
                 <DropDownButton.Flyout>
                     <Flyout>
-                        <u:Form x:DataType="services:Settings"
-                                DataContext="{x:Static services:Settings.Current}"
-                                HorizontalAlignment="Stretch" MinWidth="150">
+                        <u:Form Margin="3">
                             <u:Form.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Spacing="10" />
                                 </ItemsPanelTemplate>
                             </u:Form.ItemsPanel>
-                            <TextBlock Text="Настройки" FontWeight="Bold" Focusable="True" />
-                            <u:TimeOnlyPicker u:FormItem.Label="Начало уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
-                                              CornerRadius="10" Padding="10"
-                                              SelectedTime="{Binding StartOfClasses, Mode=TwoWay}" />
-                            <u:TimeOnlyPicker u:FormItem.Label="Конец уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
-                                              CornerRadius="10" Padding="10"
-                                              SelectedTime="{Binding EndOfClasses, Mode=TwoWay}" />
+                            <TextBlock Text="Фильтры" FontWeight="Bold" />
+                            <CheckBox Content="Прогулы" IsChecked="{Binding ShowAbsent, Mode=TwoWay}" />
+                            <CheckBox Content="Опоздавшие" IsChecked="{Binding ShowLate, Mode=TwoWay}" />
+                            <CheckBox Content="Ушедшие рано" IsChecked="{Binding ShowLeft, Mode=TwoWay}" />
+                            <ComboBox u:FormItem.Label="Группа" Classes="clearButton"
+                                      ItemsSource="{Binding Groups}"
+                                      SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                            <Button Classes="Danger" Content="Очистить фильтры" HorizontalAlignment="Stretch"
+                                    Command="{Binding ResetFiltersCommand}" />
                         </u:Form>
                     </Flyout>
                 </DropDownButton.Flyout>
@@ -65,21 +63,24 @@
                 <avalonia:MaterialIcon Kind="Settings" VerticalAlignment="Stretch" />
                 <DropDownButton.Flyout>
                     <Flyout>
-                        <u:Form HorizontalAlignment="Stretch" MinWidth="150">
+                        <u:Form x:DataType="services:Settings"
+                                DataContext="{x:Static services:Settings.Current}"
+                                HorizontalAlignment="Stretch" MinWidth="150">
                             <u:Form.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Spacing="10" />
                                 </ItemsPanelTemplate>
                             </u:Form.ItemsPanel>
-                            <TextBlock Text="Настройки" FontWeight="Bold" Focusable="True"/>
+                            <TextBlock Text="Настройки" FontWeight="Bold" Focusable="True" />
                             <u:TimeOnlyPicker u:FormItem.Label="Начало уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm" 
-                                              CornerRadius="10" Padding="10"/>
-                            <u:TimeOnlyPicker u:FormItem.Label="Конец уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm" 
+                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
                                               CornerRadius="10" Padding="10"
-                                              />
-                        </u:Form>   
+                                              SelectedTime="{Binding StartOfClasses, Mode=TwoWay}" />
+                            <u:TimeOnlyPicker u:FormItem.Label="Конец уроков" NeedConfirmation="True"
+                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
+                                              CornerRadius="10" Padding="10"
+                                              SelectedTime="{Binding EndOfClasses, Mode=TwoWay}" />
+                        </u:Form>
                     </Flyout>
                 </DropDownButton.Flyout>
             </DropDownButton>

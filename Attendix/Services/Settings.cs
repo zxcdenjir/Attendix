@@ -31,6 +31,7 @@ public partial class Settings : ObservableObject
 
     [ObservableProperty] public partial ThemeVariant Theme { get; set; } = ThemeVariant.Light;
 
+    [JsonConstructor]
     private Settings() { }
 
     partial void OnStartOfClassesChanged(TimeOnly value) => SaveIfLoaded();
@@ -38,7 +39,8 @@ public partial class Settings : ObservableObject
 
     partial void OnThemeChanged(ThemeVariant value)
     {
-        
+        if (Application.Current is not null)
+            Application.Current.RequestedThemeVariant = value;
         SaveIfLoaded();
     }
 
