@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Attendix.Models;
 using Avalonia;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,9 +26,10 @@ public partial class Settings : ObservableObject
 
     private bool _loading;
 
-    [ObservableProperty] public partial TimeOnly StartOfClasses { get; set; } = new TimeOnly(9, 0);
+    [ObservableProperty]
+    public partial TimeOnly StartOfClasses { get; set; } = new TimeOnly(9, 0);
 
-    [ObservableProperty] public partial TimeOnly EndOfClasses { get; set; } = new TimeOnly(16, 30);
+    [ObservableProperty] public partial TimeOnly EndOfClasses { get; set; } = new TimeOnly(16, 40);
 
     [ObservableProperty] public partial ThemeVariant Theme { get; set; } = ThemeVariant.Light;
 
@@ -60,14 +62,14 @@ public partial class Settings : ObservableObject
             if (loaded is null)
                 return;
 
-            _loading = true;          // чтобы Load не вызвал запись тех же данных
+            _loading = true;
             StartOfClasses = loaded.StartOfClasses;
             EndOfClasses = loaded.EndOfClasses;
             Theme = loaded.Theme;
         }
         catch
         {
-            // битый файл — остаёмся на значениях по умолчанию
+            // битый файл
         }
         finally
         {
@@ -82,11 +84,11 @@ public partial class Settings : ObservableObject
             Directory.CreateDirectory(Folder);
             var tmp = FilePath + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(this, JsonOptions));
-            File.Move(tmp, FilePath, true);   // атомарная замена — файл не побьётся при сбое
+            File.Move(tmp, FilePath, true);
         }
         catch
         {
-            // ошибки диска не роняют приложение
+            // ошибки диска
         }
     }
 }

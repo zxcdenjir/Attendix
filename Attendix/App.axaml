@@ -91,14 +91,13 @@
         <Style Selector="TableViewColumnHeader TextBlock">
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-
-        <!--<Style Selector="u|StandardDialogControl:modal /template/ Border#PART_Border">
-            <Setter Property="Background" Value="{DynamicResource DialogBlurBg}" />
+        
+        <Style Selector="TableViewRow:selected /template/ Border#PART_ContentBorder">
+            <Setter Property="Background" Value="Transparent" />
         </Style>
-
-        <Style Selector="u|MessageBoxControl:modal /template/ Border">
-            <Setter Property="Background" Value="{DynamicResource DialogBlurBg}" />
-        </Style>-->
+        <Style Selector="TableViewRow:pointerover /template/ Border#PART_ContentBorder">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
     </Application.Styles>
 
 

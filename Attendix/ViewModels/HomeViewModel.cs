@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -52,7 +53,19 @@ public partial class HomeViewModel : ObservableObject
     public HomeViewModel()
     {
         Students.CollectionChanged += (_, _) => DataIsEmpty = Students.Count == 0;
+        Settings.Current.PropertyChanged += OnSettingsChanged;
         _ = LoadDataAsync();
+    }
+    
+    private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(Settings.StartOfClasses) or nameof(Settings.EndOfClasses)))
+            return;
+
+        foreach (var student in Students)
+            student.RefreshAttendance();
+
+        ApplyFilters();
     }
 
     private async Task LoadDataAsync()

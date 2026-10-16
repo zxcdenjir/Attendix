@@ -6,10 +6,30 @@
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:u="https://irihi.tech/ursa"
              xmlns:services="clr-namespace:Attendix.Services"
+             xmlns:models="clr-namespace:Attendix.Models"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
              x:Class="Attendix.Views.HomeView"
              x:DataType="viewModels:HomeViewModel"
              Header="Attendix">
+    <ContentPage.Resources>
+        <services:AttendanceCellBrushConverter x:Key="AttendanceCellBrush" />
+
+        <ControlTheme x:Key="ArrivalCellTheme"
+                      TargetType="TableViewCell"
+                      BasedOn="{StaticResource {x:Type TableViewCell}}"
+                      x:DataType="models:Student">
+            <Setter Property="Background"
+                    Value="{Binding Converter={StaticResource AttendanceCellBrush}, ConverterParameter=Arrival}" />
+        </ControlTheme>
+
+        <ControlTheme x:Key="DepartureCellTheme"
+                      TargetType="TableViewCell"
+                      BasedOn="{StaticResource {x:Type TableViewCell}}"
+                      x:DataType="models:Student">
+            <Setter Property="Background"
+                    Value="{Binding Converter={StaticResource AttendanceCellBrush}, ConverterParameter=Departure}" />
+        </ControlTheme>
+    </ContentPage.Resources>
     <ContentPage.Styles>
         <Style Selector="u|FormItem">
             <Setter Property="Margin" Value="0" />
@@ -95,7 +115,7 @@
                                TextAlignment="Center"
                                FontSize="30"
                                Foreground="{DynamicResource SemiColorText2}" />
-                    <Button Content="Импортировать данные из xlsx" Command="{Binding ImportDataCommand}" />
+                    <Button Content="Импортировать данные из таблицы" Command="{Binding ImportDataCommand}" />
                 </StackPanel>
             </Border>
 
@@ -129,17 +149,20 @@
                             </DataTemplate>
                         </TableViewColumn.CellTemplate>
                     </TableViewColumn>
-                    <TableViewColumn Header="Первый приход" Width="155*">
+                    <TableViewColumn Header="Первый приход" Width="155*" CellTheme="{StaticResource ArrivalCellTheme}">
                         <TableViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding FirstArrivalDisplay}" TextTrimming="CharacterEllipsis" />
+                            <DataTemplate x:DataType="models:Student">
+                                <TextBlock Text="{Binding FirstArrivalDisplay}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
                             </DataTemplate>
                         </TableViewColumn.CellTemplate>
                     </TableViewColumn>
-                    <TableViewColumn Header="Последний уход" Width="155*">
+
+                    <TableViewColumn Header="Последний уход" Width="155*" CellTheme="{StaticResource DepartureCellTheme}">
                         <TableViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding LastDepartureDisplay}" TextTrimming="CharacterEllipsis" />
+                            <DataTemplate x:DataType="models:Student">
+                                <TextBlock Text="{Binding LastDepartureDisplay}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
                             </DataTemplate>
                         </TableViewColumn.CellTemplate>
                     </TableViewColumn>
