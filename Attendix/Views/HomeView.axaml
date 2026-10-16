@@ -58,7 +58,7 @@
             <Setter Property="Background" Value="{DynamicResource AttendixEarlyBrush}" />
         </Style>
     </ContentPage.Styles>
-    <Grid RowDefinitions="Auto, *" RowSpacing="10" Margin="20">
+    <Grid RowDefinitions="Auto, *, Auto" RowSpacing="10" Margin="20">
         <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="10"
               IsEnabled="{Binding IsPanelEnabled}">
             <TextBox PlaceholderText="Поиск" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -67,7 +67,7 @@
                 <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
                 <DropDownButton.Flyout>
                     <Flyout>
-                        <u:Form Margin="3">
+                        <u:Form Margin="5">
                             <u:Form.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Spacing="10" />
@@ -108,6 +108,7 @@
                 <DropDownButton.Flyout>
                     <Flyout>
                         <u:Form x:DataType="services:Settings"
+                                Margin="5"
                                 DataContext="{x:Static services:Settings.Current}"
                                 HorizontalAlignment="Stretch" MinWidth="150">
                             <u:Form.ItemsPanel>
@@ -150,6 +151,21 @@
                 <TableView.ItemContainerTheme>
                     <ControlTheme TargetType="TableViewRow" BasedOn="{StaticResource {x:Type TableViewRow}}">
                         <Setter Property="Focusable" Value="False" />
+                        <Style Selector="^:selected /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:selected:pointerover /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:selected:pressed /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:pointerover /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:pressed /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
                     </ControlTheme>
                 </TableView.ItemContainerTheme>
                 <TableView.Columns>
@@ -206,5 +222,25 @@
         </Panel>
         <ProgressBar Grid.Row="1" IsIndeterminate="True" Margin="0 -6 0 0" BorderThickness="2" VerticalAlignment="Top"
                      IsVisible="{Binding IsLoading}" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal"
+                    HorizontalAlignment="Center" IsVisible="{Binding !DataIsEmpty}">
+            <TextBlock FontSize="12" Foreground="{DynamicResource SemiColorText2}">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="Показано: {0} | Всего: {1}">
+                        <Binding Path="FilteredStudents.Count" />
+                        <Binding Path="Students.Count" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock FontSize="12" Foreground="{DynamicResource SemiColorText2}" Margin="0,0,0,0"
+                       IsVisible="{Binding SelectedGroup, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat=" | В группе «{0}»: {1}">
+                        <Binding Path="SelectedGroup" />
+                        <Binding Path="TotalInSelectedGroup" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </ContentPage>

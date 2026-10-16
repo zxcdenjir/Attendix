@@ -17,20 +17,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CsvHelper;
 using CsvHelper.Configuration;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Ursa.Controls;
 
 namespace Attendix.ViewModels;
 
 public partial class HomeViewModel : ObservableObject
 {
-    private ObservableCollection<Student> Students { get; } = [];
+    public  ObservableCollection<Student> Students { get; } = [];
 
     public ObservableCollection<Student> FilteredStudents { get; } = [];
     
     public ObservableCollection<string> Groups { get; } = [];
-    
-    
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsPanelEnabled))]
@@ -42,17 +39,27 @@ public partial class HomeViewModel : ObservableObject
 
     public bool IsPanelEnabled => !DataIsEmpty && !IsLoading;
 
-    [ObservableProperty] public partial string SearchText { get; set; }
+    [ObservableProperty] public partial string? SearchText { get; set; }
 
     [ObservableProperty] public partial bool ShowAbsent { get; set; } = true;
     [ObservableProperty] public partial bool ShowLate { get; set; } = true;
     [ObservableProperty] public partial bool ShowLeft { get; set; } = true;
     
-    [ObservableProperty] public partial string? SelectedGroup { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalInSelectedGroup))]
+    public partial string? SelectedGroup { get; set; }
+    
+    public int TotalInSelectedGroup => string.IsNullOrEmpty(SelectedGroup)
+        ? 0
+        : Students.Count(s => s.Group.Equals(SelectedGroup, StringComparison.CurrentCultureIgnoreCase));
 
     public HomeViewModel()
     {
-        Students.CollectionChanged += (_, _) => DataIsEmpty = Students.Count == 0;
+        Students.CollectionChanged += (_, _) =>
+        {
+            DataIsEmpty = Students.Count == 0;
+            OnPropertyChanged(nameof(TotalInSelectedGroup));
+        };
         Settings.Current.PropertyChanged += OnSettingsChanged;
         _ = LoadDataAsync();
     }
