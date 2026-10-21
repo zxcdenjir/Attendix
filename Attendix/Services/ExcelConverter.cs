@@ -52,6 +52,12 @@ public static class ExcelConverter
             if (header == null)
             {
                 header = cells;
+                // Колонки с непустым заголовком, но пустые во всех данных, остаются в CSV:
+                // например, «Последний уход» пуст у всей группы — колонку всё равно надо
+                // показать в предпросмотре и использовать в сопоставлении
+                for (var c = 0; c < fieldCount; c++)
+                    if (header[c].Length > 0)
+                        usedColumns.Add(c);
             }
             else
             {
@@ -100,7 +106,7 @@ public static class ExcelConverter
 
     private static string EscapeCsvField(string field)
     {
-        if (field.Contains(',') || field.Contains('"') || field.Contains('\n'))
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
             return $"\"{field.Replace("\"", "\"\"")}\"";
         return field;
     }

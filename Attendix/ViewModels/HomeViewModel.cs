@@ -59,7 +59,7 @@ public partial class HomeViewModel : ObservableObject
 
     public int TotalInSelectedGroup => string.IsNullOrEmpty(SelectedGroup)
         ? 0
-        : Students.Count(s => s.Group.Equals(SelectedGroup, StringComparison.CurrentCultureIgnoreCase));
+        : Students.Count(s => string.Equals(s.Group, SelectedGroup, StringComparison.CurrentCultureIgnoreCase));
 
     /// <summary>Число применённых фильтров: скрытые показы + выбранная группа. Максимум 4, поиск не считается.</summary>
     public int ActiveFilterCount =>
@@ -80,11 +80,10 @@ public partial class HomeViewModel : ObservableObject
         _ = LoadDataAsync();
     }
 
-    /// <summary>Начальные значения фильтров берутся из настроек после Settings.Load() в App.</summary>
+    /// <summary>Начальные значения фильтров берутся из настроек после Settings.Load() в App (поиск не персистится).</summary>
     private void LoadPersistedFilters()
     {
         var settings = Settings.Current;
-        SearchText = settings.SearchText;
         ShowAbsent = settings.ShowAbsent;
         ShowLate = settings.ShowLate;
         ShowLeft = settings.ShowLeft;
@@ -105,37 +104,60 @@ public partial class HomeViewModel : ObservableObject
 
     private async Task LoadDataAsync()
     {
-        IsLoading = true;
-        if (File.Exists(GetFilePath("attendance.csv")))
+        try
         {
-            var records = ParseCsv<Student>(GetFilePath("attendance.csv"));
+            IsLoading = true;
+            var csvPath = AppPaths.GetFilePath("attendance.csv");
 
-            Students.Clear();
-            foreach (var record in records)
+            if (File.Exists(csvPath))
             {
-                Students.Add(record);
+                var records = ParseCsv<Student>(csvPath);
+
+                Students.Clear();
+                foreach (var record in records)
+                {
+                    Students.Add(record);
+                }
+
+                // Справочник — главный источник группы: накатываем его на загруженные данные
+                StudentGroupCatalog.ApplyGroups(Students.ToList());
+            }
+            else
+            {
+                Students.Clear();
             }
 
-            // Справочник — главный источник группы: накатываем его на загруженные данные
-            StudentGroupCatalog.ApplyGroups(Students.ToList());
             RebuildGroups();
 
-            ApplyFilters();
-        }
-        else
-        {
-            Students.Clear();
-            ApplyFilters();
-        }
+            // Выбранная по настройкам группа могла исчезнуть (файл правили вне приложения) —
+            // сбрасываем фильтр, чтобы не остаться на пустоте; сеттер сам перезапустит фильтрацию
+            if (SelectedGroup is not null
+                && !Groups.Contains(SelectedGroup, StringComparer.CurrentCultureIgnoreCase))
+                SelectedGroup = null;
 
-        IsLoading = false;
+            ApplyFilters();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Битый или залоченный attendance.csv не должен вешать панель: грузим пустое
+            // состояние и показываем ошибку, вместо навсегда заполпшего индикатора
+            Students.Clear();
+            RebuildGroups();
+            ApplyFilters();
+            MainView.Current.ShowToast($"Не удалось загрузить attendance.csv: {ex.Message}", NotificationType.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
-    // Список групп для фильтра собирается по данным на экране
+    // Список групп для фильтра собирается по данным на экране; пустые строки и null
+    // (могут прийти из csv с пустой ячейкой «Класс») в список не попадают
     private void RebuildGroups()
     {
         Groups.Clear();
-        foreach (var group in Students.Select(s => s.Group).Distinct())
+        foreach (var group in Students.Select(s => s.Group).Where(g => g is { Length: > 0 }).Distinct())
             Groups.Add(group);
     }
 
@@ -167,13 +189,15 @@ public partial class HomeViewModel : ObservableObject
                 return;
 
             var filePath = files[0].Path.LocalPath;
-            var tempCsv = GetFilePath("import_preview.csv");
+            var tempCsv = AppPaths.GetFilePath("import_preview.csv");
 
             IsLoading = true;
             await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv, 10, [2], ["Посещаемость"]));
             IsLoading = false;
 
-            var previewVm = new PreviewDataImportViewModel(tempCsv);
+            // Конструктор предпросмотра читает csv целиком и разбирает строки —
+            // делаем это вне UI-потока, чтобы диалог не открывался на фризе
+            var previewVm = await Task.Run(() => new PreviewDataImportViewModel(tempCsv));
             var result = await OverlayDialog.ShowStandardAsync<PreviewDataImportView, PreviewDataImportViewModel>(
                 previewVm, null, new OverlayDialogOptions()
                 {
@@ -192,15 +216,7 @@ public partial class HomeViewModel : ObservableObject
 
             if (result != DialogResult.OK)
             {
-                try
-                {
-                    File.Delete(tempCsv);
-                }
-                catch
-                {
-                    // ignored
-                }
-
+                TryDeleteFile(tempCsv);
                 return;
             }
 
@@ -214,20 +230,15 @@ public partial class HomeViewModel : ObservableObject
             catch (InvalidOperationException ex)
             {
                 MainView.Current.ShowToast(ex.Message, NotificationType.Warning);
+                // на маппинг-ошибке temp-файл тоже уводим в сторону, чтобы не оставлять мусора
+                TryDeleteFile(tempCsv);
                 return;
             }
 
             // Группы по справочнику уже подставлены при разборе строк (и видны в предпросмотре),
             // поэтому csv пишется как есть
-            await Task.Run(() => WriteStudentsToCsv(students, GetFilePath("attendance.csv")));
-            try
-            {
-                File.Delete(tempCsv);
-            }
-            catch
-            {
-                // ignored
-            }
+            await Task.Run(() => WriteStudentsToCsv(students, AppPaths.GetFilePath("attendance.csv")));
+            TryDeleteFile(tempCsv);
 
             await LoadDataAsync();
         }
@@ -278,13 +289,12 @@ public partial class HomeViewModel : ObservableObject
             // 2) переименованные группы — и для тех, кого в справочнике нет (группа у них из csv)
             ApplyGroupRenames(vm.GroupRenames);
             // 3) фиксируем группы в csv и перечитываем данные: новые экземпляры Student
-            //    гарантируют перерисовку строк таблицы
-            WriteStudentsToCsv(Students.ToList(), GetFilePath("attendance.csv"));
+            //    гарантируют перерисовку строк таблицы. При пустых данных файл не трогаем:
+            //    если загрузка до этого сорвалась (и Students пуст), нельзя затирать
+            //    существующий csv одной шапкой
+            if (Students.Count > 0)
+                WriteStudentsToCsv(Students.ToList(), AppPaths.GetFilePath("attendance.csv"));
             await LoadDataAsync();
-
-            // Выбранная группа могла быть переименована — сбрасываем фильтр, чтобы не остаться на пустоте
-            if (SelectedGroup is not null && !Groups.Contains(SelectedGroup, StringComparer.CurrentCultureIgnoreCase))
-                SelectedGroup = null;
 
             MainView.Current.ShowToast("Справочник групп сохранен", NotificationType.Success);
         }
@@ -358,6 +368,19 @@ public partial class HomeViewModel : ObservableObject
     }
 
 
+    /// <summary>Удаляет служебный файл, проглатывая ошибки диска (не критично).</summary>
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch
+        {
+            // «переезд» служебного файла к следующему циклу работы — не ошибка
+        }
+    }
+
     [RelayCommand]
     private async Task ClearDataAsync()
     {
@@ -369,11 +392,12 @@ public partial class HomeViewModel : ObservableObject
         IsLoading = true;
 
         Students.Clear();
+        RebuildGroups();
         ApplyFilters();
 
         try
         {
-            File.Delete(GetFilePath("attendance.csv"));
+            File.Delete(AppPaths.GetFilePath("attendance.csv"));
         }
         catch (Exception ex)
         {
@@ -391,18 +415,19 @@ public partial class HomeViewModel : ObservableObject
         
         if (!string.IsNullOrEmpty(SelectedGroup))
         {
-            students = students.Where(s => s.Group.Equals(SelectedGroup, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            students = students.Where(s => string.Equals(s.Group, SelectedGroup, StringComparison.CurrentCultureIgnoreCase)).ToList();
         }
 
         if (!string.IsNullOrEmpty(SearchText))
         {
             var words = SearchText.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim())
                 .Where(w => w.Length > 0).ToList();
+            // Null-safe: пустые «Учащийся»/«Класс» из csv дают null, а не пустую строку
             students = students.Where(s =>
                     words.Any(w =>
-                        s.FullName.Contains(w, StringComparison.CurrentCultureIgnoreCase) ||
+                        (s.FullName?.Contains(w, StringComparison.CurrentCultureIgnoreCase) ?? false) ||
                         s.Date.ToString("dd.MM.yyyy").Contains(w, StringComparison.CurrentCultureIgnoreCase) ||
-                        s.Group.Contains(w, StringComparison.CurrentCultureIgnoreCase))).ToList();
+                        (s.Group?.Contains(w, StringComparison.CurrentCultureIgnoreCase) ?? false))).ToList();
         }
         
         if (!ShowAbsent)
@@ -437,16 +462,6 @@ public partial class HomeViewModel : ObservableObject
         return csv.GetRecords<T>().ToList();
     }
 
-    public static string GetAppDataFolder()
-    {
-        var basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var appFolder = Path.Combine(basePath, "Attendix");
-        Directory.CreateDirectory(appFolder);
-        return appFolder;
-    }
-
-    public static string GetFilePath(string fileName) => Path.Combine(GetAppDataFolder(), fileName);
-
     /// <summary>Подбирает имя файла без расширения, которого ещё нет в directory: base, "base (1)", "base (2)" и т.д.</summary>
     private static string GetUniqueFileName(string directory, string baseName)
     {
@@ -457,9 +472,10 @@ public partial class HomeViewModel : ObservableObject
         return name;
     }
 
+    // Поиск живёт только в сессии: не персистится, чтобы не дёргать запись settings.json
+    // на каждый символ в поиске
     partial void OnSearchTextChanged(string? value)
     {
-        Settings.Current.SearchText = value;
         ApplyFilters();
     }
 

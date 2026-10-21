@@ -49,7 +49,8 @@ public partial class PreviewDataImportViewModel : ViewModelBase
 
     [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
 
-    public bool HasFullNameMapping => SelectedFullNameColumn is not null;
+    // None (— не импортировать —) картой ФИО не считается: у него Index = -1
+    public bool HasFullNameMapping => SelectedFullNameColumn is { Index: >= 0 };
 
     public PreviewDataImportViewModel()
     {
@@ -178,7 +179,7 @@ public partial class PreviewDataImportViewModel : ViewModelBase
     /// <summary>Полный импорт по текущему сопоставлению (не только предпросмотр).</summary>
     public List<Student> GetStudents()
     {
-        if (SelectedFullNameColumn is null)
+        if (SelectedFullNameColumn is not { Index: >= 0 })
             throw new InvalidOperationException("Не сопоставлена колонка с ФИО.");
 
         return DataRows().Select(ParseRow)

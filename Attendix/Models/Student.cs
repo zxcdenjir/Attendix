@@ -10,7 +10,11 @@ namespace Attendix.Models;
 
 public partial class Student : ObservableObject
 {
-    [Name("Дата")] [ObservableProperty] public partial DateOnly Date { get; set; }
+    // Дата в CSV — фикс. формат dd.MM.yyyy (старые файлы с M/d/yyyy тоже читаются): см. CsvDateOnlyConverter
+    [Name("Дата")]
+    [TypeConverter(typeof(CsvDateOnlyConverter))]
+    [ObservableProperty]
+    public partial DateOnly Date { get; set; }
 
     [Name("Класс")] [ObservableProperty] public partial string Group { get; set; } = null!;
 

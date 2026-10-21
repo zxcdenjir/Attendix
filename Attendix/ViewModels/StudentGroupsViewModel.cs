@@ -17,7 +17,7 @@ namespace Attendix.ViewModels;
 /// к резервной копии. Файл пишет SaveToCatalog — его вызывает HomeViewModel после «ОК»
 /// в диалоге, правки до этого живут лишь в памяти. Сообщения пользователю — тостами.
 /// </summary>
-public partial class StudentGroupsViewModel : ObservableObject
+public partial class StudentGroupsViewModel : ViewModelBase
 {
 
     private readonly List<string> _customGroups = [];

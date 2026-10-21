@@ -12,10 +12,7 @@ namespace Attendix.Services;
 
 public partial class Settings : ObservableObject
 {
-    private static readonly string Folder = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Attendix");
-
-    private static string FilePath => Path.Combine(Folder, "settings.json");
+    private static string FilePath => AppPaths.GetFilePath("settings.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -42,8 +39,7 @@ public partial class Settings : ObservableObject
     [ObservableProperty]
     public partial string? LastExportDirectory { get; set; }
 
-    [ObservableProperty]
-    public partial string? SearchText { get; set; }
+    // Поиск намеренно не сохраняется: запись settings.json дёргалась бы на каждый символ
 
     [ObservableProperty]
     public partial bool ShowAbsent { get; set; } = true;
@@ -65,8 +61,6 @@ public partial class Settings : ObservableObject
     partial void OnHighlightCellsChanged(bool value) => SaveIfLoaded();
 
     partial void OnLastExportDirectoryChanged(string? value) => SaveIfLoaded();
-
-    partial void OnSearchTextChanged(string? value) => SaveIfLoaded();
 
     partial void OnShowAbsentChanged(bool value) => SaveIfLoaded();
 
@@ -105,7 +99,6 @@ public partial class Settings : ObservableObject
             HighlightCells = loaded.HighlightCells;
             Theme = loaded.Theme;
             LastExportDirectory = loaded.LastExportDirectory;
-            SearchText = loaded.SearchText;
             ShowAbsent = loaded.ShowAbsent;
             ShowLate = loaded.ShowLate;
             ShowLeft = loaded.ShowLeft;
@@ -125,7 +118,7 @@ public partial class Settings : ObservableObject
     {
         try
         {
-            Directory.CreateDirectory(Folder);
+            Directory.CreateDirectory(AppPaths.Folder);
             var tmp = FilePath + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(this, JsonOptions));
             File.Move(tmp, FilePath, true);

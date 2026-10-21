@@ -40,13 +40,10 @@ public partial class StudentGroupRecord : ObservableObject
 /// </summary>
 public static class StudentGroupCatalog
 {
-    private static readonly string Folder = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Attendix");
+    private static string FilePath => AppPaths.GetFilePath("student-groups.json");
 
-    private static string FilePath => Path.Combine(Folder, "student-groups.json");
-
-    // Резервная копия — снимок перед каждой перезаписью файла списка
-    private static string BackupFilePath => Path.Combine(Folder, "student-groups.backup.json");
+    // Последний снапшот — именно его читает «Восстановить» в редакторе
+    private static string BackupFilePath => AppPaths.GetFilePath("student-groups.backup.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -111,13 +108,36 @@ public static class StudentGroupCatalog
         return records;
     }
 
-    /// <summary>Снимает резервную копию текущего файла (если он есть).</summary>
+    // Сколько штампованных снапшотов держать на диске (история отката по сеансам правок)
+    private const int MaxBackupCopies = 5;
+
+    /// <summary>
+    /// Снимает резервную копию текущего файла (если он есть): текущий файл копируется
+    /// в обычный снапшот (его использует «Восстановить》) и в штампованную копию
+    /// с датой-временем — на диске накапливается история состояний, а не только последний шаг.
+    /// </summary>
     public static void CreateBackup()
     {
         try
         {
-            if (File.Exists(FilePath))
-                File.Copy(FilePath, BackupFilePath, true);
+            if (!File.Exists(FilePath))
+                return;
+
+            var stamped = AppPaths.GetFilePath(
+                $"student-groups.backup.{DateTime.Now:yyyyMMdd-HHmmss-fff}.json");
+            File.Copy(FilePath, stamped, true);
+
+            // Прореживаем штампованные копии: остаются MaxBackupCopies новейших (включая свежую);
+            // только-что созданную и обычный снапшот не трогаем
+            var oldCopies = Directory.GetFiles(AppPaths.Folder, "student-groups.backup.*.json")
+                .Where(f => !string.Equals(f, stamped, StringComparison.OrdinalIgnoreCase)
+                            && !string.Equals(f, BackupFilePath, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(f => f, StringComparer.Ordinal)
+                .Skip(MaxBackupCopies - 1);
+            foreach (var stale in oldCopies)
+                File.Delete(stale);
+
+            File.Copy(FilePath, BackupFilePath, true);
         }
         catch
         {
@@ -184,7 +204,11 @@ public static class StudentGroupCatalog
         if (fullName is null)
             return false;
 
-        if (_index.TryGetValue(NormalizeName(fullName), out var found))
+        // Локальная копия ссылки на индекс: он пересоздаётся целиком без блокировок,
+        // а разбор может идти в фоновом потоке (импорт). Атомарное чтение ссылки всегда
+        // даёт целостную версию — старую или новую, но не урванную пополам.
+        var index = _index;
+        if (index.TryGetValue(NormalizeName(fullName), out var found))
         {
             group = found ?? string.Empty;
             return true;
@@ -227,10 +251,9 @@ public static class StudentGroupCatalog
 
         try
         {
-            Directory.CreateDirectory(Folder);
-            // прошлый файл — в резервную копию, чтобы его можно было восстановить
-            CreateBackup();
+            Directory.CreateDirectory(AppPaths.Folder);
             // Schema: {"generatedAt","customGroups","students"}; запись сначала во временный файл
+            // (снапшот делается только при открытии диалога редактора — не здесь)
             var tmp = FilePath + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(
                 new CatalogFile

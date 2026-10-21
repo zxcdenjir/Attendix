@@ -1,6 +1,5 @@
 using System;
 using Attendix.Controls;
-using Attendix.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -11,13 +10,12 @@ namespace Attendix.Views;
 public partial class MainView : UrsaNavigationPage
 {
     public static MainView Current { get; private set; } = null!;
-    
+
     private WindowToastManager _toastManager = null!;
-    
+
     public MainView()
     {
         InitializeComponent();
-        DataContext = new MainViewModel();
         Current = this;
     }
 

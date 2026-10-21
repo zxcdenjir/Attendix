@@ -13,8 +13,6 @@ namespace Attendix.Controls;
 /// </summary>
 public sealed class GroupSelectionConverter : IValueConverter
 {
-    public static readonly GroupSelectionConverter Instance = new();
-
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
