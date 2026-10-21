@@ -63,29 +63,31 @@
               IsEnabled="{Binding IsPanelEnabled}">
             <TextBox PlaceholderText="Поиск" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Classes="clearButton" />
-            <DropDownButton Grid.Column="1" VerticalAlignment="Stretch" ToolTip.Tip="Фильтры" BorderThickness="0">
-                <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
-                <DropDownButton.Flyout>
-                    <Flyout>
-                        <u:Form Margin="5">
-                            <u:Form.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="10" />
-                                </ItemsPanelTemplate>
-                            </u:Form.ItemsPanel>
-                            <TextBlock Text="Фильтры" FontWeight="Bold" />
-                            <CheckBox Content="Прогулы" IsChecked="{Binding ShowAbsent, Mode=TwoWay}" />
-                            <CheckBox Content="Опоздавшие" IsChecked="{Binding ShowLate, Mode=TwoWay}" />
-                            <CheckBox Content="Ушедшие рано" IsChecked="{Binding ShowLeft, Mode=TwoWay}" />
-                            <ComboBox u:FormItem.Label="Группа" Classes="clearButton"
-                                      ItemsSource="{Binding Groups}"
-                                      SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
-                            <Button Classes="Danger" Content="Очистить фильтры" HorizontalAlignment="Stretch"
-                                    Command="{Binding ResetFiltersCommand}" />
-                        </u:Form>
-                    </Flyout>
-                </DropDownButton.Flyout>
-            </DropDownButton>
+            <u:Badge Grid.Column="1" VerticalAlignment="Stretch" Header="{Binding ActiveFilterBadge}" CornerPosition="TopRight">
+                <DropDownButton VerticalAlignment="Stretch" ToolTip.Tip="Фильтры" BorderThickness="0">
+                    <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
+                    <DropDownButton.Flyout>
+                        <Flyout>
+                            <u:Form Margin="5">
+                                <u:Form.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="10" />
+                                    </ItemsPanelTemplate>
+                                </u:Form.ItemsPanel>
+                                <TextBlock Text="Фильтры" FontWeight="Bold" />
+                                <CheckBox Content="Прогулы" IsChecked="{Binding ShowAbsent, Mode=TwoWay}" />
+                                <CheckBox Content="Опоздавшие" IsChecked="{Binding ShowLate, Mode=TwoWay}" />
+                                <CheckBox Content="Ушедшие рано" IsChecked="{Binding ShowLeft, Mode=TwoWay}" />
+                                <ComboBox u:FormItem.Label="Группа" Classes="clearButton"
+                                          ItemsSource="{Binding Groups}"
+                                          SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                                <Button Classes="Danger" Content="Очистить фильтры" HorizontalAlignment="Stretch"
+                                        Command="{Binding ResetFiltersCommand}" />
+                            </u:Form>
+                        </Flyout>
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+            </u:Badge>
             <Button Grid.Column="2" VerticalAlignment="Stretch" ToolTip.Tip="Экспорт в таблицу" BorderThickness="0"
                     Width="{Binding $self.Bounds.Height}" Theme="{StaticResource SolidButton}"
                     Command="{Binding ExportToXlsxCommand}">
@@ -200,7 +202,8 @@
                         </TableViewColumn.CellTemplate>
                     </TableViewColumn>
 
-                    <TableViewColumn Header="Последний уход" Width="155*" CellTheme="{StaticResource DepartureCellTheme}">
+                    <TableViewColumn Header="Последний уход" Width="155*"
+                                     CellTheme="{StaticResource DepartureCellTheme}">
                         <TableViewColumn.CellTemplate>
                             <DataTemplate x:DataType="models:Student">
                                 <TextBlock Text="{Binding LastDepartureDisplay}" VerticalAlignment="Center"

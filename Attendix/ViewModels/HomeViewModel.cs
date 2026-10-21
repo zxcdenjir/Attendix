@@ -41,17 +41,31 @@ public partial class HomeViewModel : ObservableObject
 
     [ObservableProperty] public partial string? SearchText { get; set; }
 
-    [ObservableProperty] public partial bool ShowAbsent { get; set; } = true;
-    [ObservableProperty] public partial bool ShowLate { get; set; } = true;
-    [ObservableProperty] public partial bool ShowLeft { get; set; } = true;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveFilterBadge))]
+    public partial bool ShowAbsent { get; set; } = true;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveFilterBadge))]
+    public partial bool ShowLate { get; set; } = true;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveFilterBadge))]
+    public partial bool ShowLeft { get; set; } = true;
     
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TotalInSelectedGroup))]
+    [NotifyPropertyChangedFor(nameof(ActiveFilterBadge))]
     public partial string? SelectedGroup { get; set; }
-    
+
     public int TotalInSelectedGroup => string.IsNullOrEmpty(SelectedGroup)
         ? 0
         : Students.Count(s => s.Group.Equals(SelectedGroup, StringComparison.CurrentCultureIgnoreCase));
+
+    /// <summary>Число применённых фильтров: скрытые показы + выбранная группа. Максимум 4, поиск не считается.</summary>
+    public int ActiveFilterCount =>
+        (!ShowAbsent ? 1 : 0) + (!ShowLate ? 1 : 0) + (!ShowLeft ? 1 : 0) + (SelectedGroup is not null ? 1 : 0);
+
+    /// <summary>Для Header в u:Badge: null скрывает бейдж, иначе — число применённых фильтров.</summary>
+    public string? ActiveFilterBadge => ActiveFilterCount == 0 ? null : ActiveFilterCount.ToString();
 
     public HomeViewModel()
     {
@@ -61,7 +75,19 @@ public partial class HomeViewModel : ObservableObject
             OnPropertyChanged(nameof(TotalInSelectedGroup));
         };
         Settings.Current.PropertyChanged += OnSettingsChanged;
+        LoadPersistedFilters();
         _ = LoadDataAsync();
+    }
+
+    /// <summary>Начальные значения фильтров берутся из настроек после Settings.Load() в App.</summary>
+    private void LoadPersistedFilters()
+    {
+        var settings = Settings.Current;
+        SearchText = settings.SearchText;
+        ShowAbsent = settings.ShowAbsent;
+        ShowLate = settings.ShowLate;
+        ShowLeft = settings.ShowLeft;
+        SelectedGroup = settings.SelectedGroup;
     }
     
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -210,10 +236,25 @@ public partial class HomeViewModel : ObservableObject
         try
         {
             var top = TopLevel.GetTopLevel(MainView.Current)!;
+            var directory = Settings.Current.LastExportDirectory;
+            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+                directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            IStorageFolder? startFolder = null;
+            try
+            {
+                startFolder = await top.StorageProvider.TryGetFolderFromPathAsync(new Uri(directory));
+            }
+            catch
+            {
+                // путь оказался некорректным - диалог откроется в папке по умолчанию
+            }
+
             var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
                 Title = "Экспорт отчета о посещаемости",
-                SuggestedFileName = $"Отчет о посещаемости {DateTime.Now:dd.MM.yyyy}",
+                SuggestedStartLocation = startFolder,
+                SuggestedFileName = GetUniqueFileName(directory, $"Отчет о посещаемости {DateTime.Now:dd.MM.yyyy}"),
                 DefaultExtension = "xlsx",
                 FileTypeChoices = [new FilePickerFileType("Книга Excel") { Patterns = ["*.xlsx"] }],
                 ShowOverwritePrompt = true,
@@ -222,6 +263,7 @@ public partial class HomeViewModel : ObservableObject
                 return;
 
             var path = file.Path.LocalPath;
+            Settings.Current.LastExportDirectory = Path.GetDirectoryName(path);
             IsLoading = true;
             await Task.Run(() => AttendanceReportExporter.Export(students, path));
             MainView.Current.ShowToast("Отчет успешно сохранен", NotificationType.Success);
@@ -334,28 +376,43 @@ public partial class HomeViewModel : ObservableObject
 
     public static string GetFilePath(string fileName) => Path.Combine(GetAppDataFolder(), fileName);
 
+    /// <summary>Подбирает имя файла без расширения, которого ещё нет в directory: base, "base (1)", "base (2)" и т.д.</summary>
+    private static string GetUniqueFileName(string directory, string baseName)
+    {
+        var name = baseName;
+        var index = 1;
+        while (File.Exists(Path.Combine(directory, name + ".xlsx")))
+            name = $"{baseName} ({index++})";
+        return name;
+    }
+
     partial void OnSearchTextChanged(string? value)
     {
+        Settings.Current.SearchText = value;
         ApplyFilters();
     }
-    
+
     partial void OnShowAbsentChanged(bool value)
     {
+        Settings.Current.ShowAbsent = value;
         ApplyFilters();
     }
 
     partial void OnShowLateChanged(bool value)
     {
+        Settings.Current.ShowLate = value;
         ApplyFilters();
     }
 
     partial void OnShowLeftChanged(bool value)
     {
+        Settings.Current.ShowLeft = value;
         ApplyFilters();
     }
-    
+
     partial void OnSelectedGroupChanged(string? value)
     {
+        Settings.Current.SelectedGroup = value;
         ApplyFilters();
     }
 

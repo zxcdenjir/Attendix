@@ -36,12 +36,42 @@ public partial class Settings : ObservableObject
     [ObservableProperty]
     public partial bool HighlightCells { get; set; } = true;
 
+    [ObservableProperty]
+    public partial string? LastExportDirectory { get; set; }
+
+    [ObservableProperty]
+    public partial string? SearchText { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowAbsent { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ShowLate { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ShowLeft { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string? SelectedGroup { get; set; }
+
     [JsonConstructor]
     private Settings() { }
 
     partial void OnStartOfClassesChanged(TimeOnly value) => SaveIfLoaded();
     partial void OnEndOfClassesChanged(TimeOnly value) => SaveIfLoaded();
     partial void OnHighlightCellsChanged(bool value) => SaveIfLoaded();
+
+    partial void OnLastExportDirectoryChanged(string? value) => SaveIfLoaded();
+
+    partial void OnSearchTextChanged(string? value) => SaveIfLoaded();
+
+    partial void OnShowAbsentChanged(bool value) => SaveIfLoaded();
+
+    partial void OnShowLateChanged(bool value) => SaveIfLoaded();
+
+    partial void OnShowLeftChanged(bool value) => SaveIfLoaded();
+
+    partial void OnSelectedGroupChanged(string? value) => SaveIfLoaded();
 
     partial void OnThemeChanged(ThemeVariant value)
     {
@@ -71,6 +101,12 @@ public partial class Settings : ObservableObject
             EndOfClasses = loaded.EndOfClasses;
             HighlightCells = loaded.HighlightCells;
             Theme = loaded.Theme;
+            LastExportDirectory = loaded.LastExportDirectory;
+            SearchText = loaded.SearchText;
+            ShowAbsent = loaded.ShowAbsent;
+            ShowLate = loaded.ShowLate;
+            ShowLeft = loaded.ShowLeft;
+            SelectedGroup = loaded.SelectedGroup;
         }
         catch
         {
