@@ -10,9 +10,6 @@ namespace Attendix.Services;
 
 public static class ExcelConverter
 {
-    /// <summary>Читает xls/xlsx и пишет csv, отрезая skipRows строк шапки отчёта сверху.</summary>
-    /// <param name="columnsToUpper">Индексы колонок (с нуля), значения которых приводятся к верхнему регистру (кроме заголовка).</param>
-    /// <param name="excludeColumns">Названия колонок из шапки, которые не должны попадать в CSV.</param>
     public static void ConvertToCsv(string excelPath, string csvPath, int skipRows = 10,
         int[]? columnsToUpper = null, string[]? excludeColumns = null)
     {
@@ -21,7 +18,6 @@ public static class ExcelConverter
 
         for (var i = 0; i < skipRows && reader.Read(); i++)
         {
-            // отрезает шапку отчёта
         }
 
         var upper = new HashSet<int>(columnsToUpper ?? []);
@@ -52,9 +48,6 @@ public static class ExcelConverter
             if (header == null)
             {
                 header = cells;
-                // Колонки с непустым заголовком, но пустые во всех данных, остаются в CSV:
-                // например, «Последний уход» пуст у всей группы — колонку всё равно надо
-                // показать в предпросмотре и использовать в сопоставлении
                 for (var c = 0; c < fieldCount; c++)
                     if (header[c].Length > 0)
                         usedColumns.Add(c);

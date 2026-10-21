@@ -17,7 +17,6 @@ public partial class Settings : ObservableObject
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        // Кириллица (например, путь экспорта) не должна превращаться в \u0421...
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         Converters = { new ThemeVariantJsonConverter() }
     };
@@ -39,7 +38,6 @@ public partial class Settings : ObservableObject
     [ObservableProperty]
     public partial string? LastExportDirectory { get; set; }
 
-    // Поиск намеренно не сохраняется: запись settings.json дёргалась бы на каждый символ
 
     [ObservableProperty]
     public partial bool ShowAbsent { get; set; } = true;

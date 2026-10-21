@@ -61,11 +61,9 @@ public partial class HomeViewModel : ObservableObject
         ? 0
         : Students.Count(s => string.Equals(s.Group, SelectedGroup, StringComparison.CurrentCultureIgnoreCase));
 
-    /// <summary>Число применённых фильтров: скрытые показы + выбранная группа. Максимум 4, поиск не считается.</summary>
     public int ActiveFilterCount =>
         (!ShowAbsent ? 1 : 0) + (!ShowLate ? 1 : 0) + (!ShowLeft ? 1 : 0) + (SelectedGroup is not null ? 1 : 0);
 
-    /// <summary>Для Header в u:Badge: null скрывает бейдж, иначе — число применённых фильтров.</summary>
     public string? ActiveFilterBadge => ActiveFilterCount == 0 ? null : ActiveFilterCount.ToString();
 
     public HomeViewModel()
@@ -80,7 +78,6 @@ public partial class HomeViewModel : ObservableObject
         _ = LoadDataAsync();
     }
 
-    /// <summary>Начальные значения фильтров берутся из настроек после Settings.Load() в App (поиск не персистится).</summary>
     private void LoadPersistedFilters()
     {
         var settings = Settings.Current;
@@ -119,7 +116,6 @@ public partial class HomeViewModel : ObservableObject
                     Students.Add(record);
                 }
 
-                // Справочник — главный источник группы: накатываем его на загруженные данные
                 StudentGroupCatalog.ApplyGroups(Students.ToList());
             }
             else
@@ -129,8 +125,6 @@ public partial class HomeViewModel : ObservableObject
 
             RebuildGroups();
 
-            // Выбранная по настройкам группа могла исчезнуть (файл правили вне приложения) —
-            // сбрасываем фильтр, чтобы не остаться на пустоте; сеттер сам перезапустит фильтрацию
             if (SelectedGroup is not null
                 && !Groups.Contains(SelectedGroup, StringComparer.CurrentCultureIgnoreCase))
                 SelectedGroup = null;
@@ -152,8 +146,6 @@ public partial class HomeViewModel : ObservableObject
         }
     }
 
-    // Список групп для фильтра собирается по данным на экране; пустые строки и null
-    // (могут прийти из csv с пустой ячейкой «Класс») в список не попадают
     private void RebuildGroups()
     {
         Groups.Clear();
@@ -161,8 +153,6 @@ public partial class HomeViewModel : ObservableObject
             Groups.Add(group);
     }
 
-    // Переименования из справочника применяем и к тем студентам, которых в справочнике нет:
-    // их группа живет только в csv, и без этого они остались бы со старым именем
     private void ApplyGroupRenames(IReadOnlyList<(string Old, string New)> renames)
     {
         foreach (var (oldName, newName) in renames)
@@ -195,8 +185,6 @@ public partial class HomeViewModel : ObservableObject
             await Task.Run(() => ExcelConverter.ConvertToCsv(filePath, tempCsv, 10, [2], ["Посещаемость"]));
             IsLoading = false;
 
-            // Конструктор предпросмотра читает csv целиком и разбирает строки —
-            // делаем это вне UI-потока, чтобы диалог не открывался на фризе
             var previewVm = await Task.Run(() => new PreviewDataImportViewModel(tempCsv));
             var result = await OverlayDialog.ShowStandardAsync<PreviewDataImportView, PreviewDataImportViewModel>(
                 previewVm, null, new OverlayDialogOptions()
@@ -235,8 +223,6 @@ public partial class HomeViewModel : ObservableObject
                 return;
             }
 
-            // Группы по справочнику уже подставлены при разборе строк (и видны в предпросмотре),
-            // поэтому csv пишется как есть
             await Task.Run(() => WriteStudentsToCsv(students, AppPaths.GetFilePath("attendance.csv")));
             TryDeleteFile(tempCsv);
 
@@ -273,9 +259,6 @@ public partial class HomeViewModel : ObservableObject
                     StyleClass = "Groups"
                 });
 
-            // Флай прячем уже после показа диалога, на следующем проходе диспетчера:
-            // если скрыть его синхронно в клике, Ursa не находит хост оверлея
-            // и диалог не открывается
             Dispatcher.UIThread.Post(HomeView.Current.HideSettingsFlyout, DispatcherPriority.Background);
 
             var result = await dialogTask;
@@ -283,15 +266,8 @@ public partial class HomeViewModel : ObservableObject
                 return;
 
             vm.SaveToCatalog();
-            // Правки справочника сразу отражаются на загруженных данных:
-            // 1) кто есть в справочнике — группа из справочника
             StudentGroupCatalog.ApplyGroups(Students.ToList());
-            // 2) переименованные группы — и для тех, кого в справочнике нет (группа у них из csv)
             ApplyGroupRenames(vm.GroupRenames);
-            // 3) фиксируем группы в csv и перечитываем данные: новые экземпляры Student
-            //    гарантируют перерисовку строк таблицы. При пустых данных файл не трогаем:
-            //    если загрузка до этого сорвалась (и Students пуст), нельзя затирать
-            //    существующий csv одной шапкой
             if (Students.Count > 0)
                 WriteStudentsToCsv(Students.ToList(), AppPaths.GetFilePath("attendance.csv"));
             await LoadDataAsync();
@@ -368,7 +344,6 @@ public partial class HomeViewModel : ObservableObject
     }
 
 
-    /// <summary>Удаляет служебный файл, проглатывая ошибки диска (не критично).</summary>
     private static void TryDeleteFile(string path)
     {
         try
@@ -422,7 +397,6 @@ public partial class HomeViewModel : ObservableObject
         {
             var words = SearchText.Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim())
                 .Where(w => w.Length > 0).ToList();
-            // Null-safe: пустые «Учащийся»/«Класс» из csv дают null, а не пустую строку
             students = students.Where(s =>
                     words.Any(w =>
                         (s.FullName?.Contains(w, StringComparison.CurrentCultureIgnoreCase) ?? false) ||
@@ -462,7 +436,6 @@ public partial class HomeViewModel : ObservableObject
         return csv.GetRecords<T>().ToList();
     }
 
-    /// <summary>Подбирает имя файла без расширения, которого ещё нет в directory: base, "base (1)", "base (2)" и т.д.</summary>
     private static string GetUniqueFileName(string directory, string baseName)
     {
         var name = baseName;
@@ -472,8 +445,6 @@ public partial class HomeViewModel : ObservableObject
         return name;
     }
 
-    // Поиск живёт только в сессии: не персистится, чтобы не дёргать запись settings.json
-    // на каждый символ в поиске
     partial void OnSearchTextChanged(string? value)
     {
         ApplyFilters();

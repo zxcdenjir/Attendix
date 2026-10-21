@@ -11,19 +11,11 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Attendix.ViewModels;
 
-/// <summary>
-/// Редактор справочника «студент — группа»: просмотр по группам с поиском, перенос студента
-/// между группами, переименование группы, добавление и удаление студентов и групп, откат
-/// к резервной копии. Файл пишет SaveToCatalog — его вызывает HomeViewModel после «ОК»
-/// в диалоге, правки до этого живут лишь в памяти. Сообщения пользователю — тостами.
-/// </summary>
 public partial class StudentGroupsViewModel : ViewModelBase
 {
 
     private readonly List<string> _customGroups = [];
 
-    // Переименования групп за сеанс редактирования: применяются и к студентам на экране,
-    // которых нет в справочнике (их группа живет только в csv)
     private readonly List<(string Old, string New)> _groupRenames = [];
 
     public IReadOnlyList<(string Old, string New)> GroupRenames => _groupRenames;
@@ -34,7 +26,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
 
     public ObservableCollection<string> Groups { get; } = [];
 
-    // Список внизу: студенты выбранной группы или результат поиска по всему справочнику
     public ObservableCollection<StudentGroupRecord> GroupStudents { get; } = [];
 
     [ObservableProperty] public partial string? SelectedGroup { get; set; }
@@ -66,7 +57,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value) => RefillGroupStudents();
 
-    // Полная замена состава редактора: используется при создании и при восстановлении из копии
     private void ReplaceRecords(List<StudentGroupRecord> records, List<string> customGroups)
     {
         foreach (var record in Records)
@@ -79,7 +69,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
         foreach (var record in Records)
         {
             record.PropertyChanged += OnRecordPropertyChanged;
-            // Общий список опций для комбобоксов переноса в строках (наполняется ниже в RebuildGroups)
             record.GroupOptions = Groups;
         }
 
@@ -102,9 +91,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
 
         SelectedGroup = previous is not null && Groups.Contains(previous) ? previous : Groups.FirstOrDefault();
 
-        // После перестройки списка комбобоксы в строках теряют выделение — подталкиваем
-        // значение группы в привязку, чтобы оно выбралось заново (запись null в Group
-        // блокирует GroupSelectionConverter)
         foreach (var record in Records)
             record.RefreshGroupSelection();
     }
@@ -113,8 +99,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
     {
         GroupStudents.Clear();
         var search = StudentGroupCatalog.NormalizeName(SearchText);
-        // Поиск ограничен выбранной группой: глобальный перебор всего справочника
-        // с нормализацией ФИО на каждый символ тормозит
         IEnumerable<StudentGroupRecord> source = Records.Where(r => r.Group == SelectedGroup);
         if (search.Length > 0)
             source = source.Where(r =>
@@ -196,7 +180,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
             return;
         }
 
-        // Массовая смена не должна перетряхать список по каждому студенту
         _suppressRefill = true;
         try
         {
@@ -263,7 +246,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
         RefillGroupStudents();
     }
 
-    // Возвращает в редактор содержимое резервной копии; запишется на диск после «ОК»
     [RelayCommand]
     private void RestoreBackup()
     {
@@ -274,7 +256,6 @@ public partial class StudentGroupsViewModel : ViewModelBase
         }
 
         ReplaceRecords(records, customGroups);
-        // Откат к снимку: записанные переименования больше не соответствуют состоянию
         _groupRenames.Clear();
         MainView.Current.ShowToast("Восстановлено из резервной копии. Нажмите «ОК», чтобы сохранить.",
             NotificationType.Information);

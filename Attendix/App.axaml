@@ -8,7 +8,6 @@
              xmlns:iri="https://irihi.tech/shared"
              x:Class="Attendix.App"
              RequestedThemeVariant="Light">
-    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
@@ -105,6 +104,31 @@
         </Style>
         <Style Selector="TableViewRow:pointerover /template/ Border#PART_ContentBorder">
             <Setter Property="Background" Value="Transparent" />
+        </Style>
+        
+        <Style Selector="TableView">
+            <Setter Property="ItemContainerTheme">
+                <Setter.Value>
+                    <ControlTheme TargetType="TableViewRow" BasedOn="{StaticResource {x:Type TableViewRow}}">
+                        <Setter Property="Focusable" Value="False" />
+                        <Style Selector="^:selected /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:selected:pointerover /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:selected:pressed /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:pointerover /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                        <Style Selector="^:pressed /template/ Border#BackgroundBorder">
+                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
+                        </Style>
+                    </ControlTheme>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Application.Styles>
 

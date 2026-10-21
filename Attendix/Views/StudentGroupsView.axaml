@@ -11,13 +11,11 @@
              x:DataType="vm:StudentGroupsViewModel">
 
     <UserControl.Resources>
-        <!-- Конвертер не даёт комбобоксу записать null в группу при сбросе выделения -->
         <controls:GroupSelectionConverter x:Key="GroupSelection" />
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="10">
 
-        <!-- Управление группами: над строкой поиска и комбобоксом -->
         <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" ColumnSpacing="8">
             <TextBox PlaceholderText="Введите имя группы"
                      Text="{Binding NewGroupName, UpdateSourceTrigger=PropertyChanged}" />
@@ -40,7 +38,6 @@
             </Button>
         </Grid>
 
-        <!-- Группа и поиск по всему справочнику -->
         <Grid Grid.Row="1" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8">
             <ComboBox MinWidth="220"
                       ItemsSource="{Binding Groups}"

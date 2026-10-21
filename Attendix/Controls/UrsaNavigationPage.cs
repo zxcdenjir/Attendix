@@ -8,7 +8,6 @@ namespace Attendix.Controls;
 
 public class UrsaNavigationPage : NavigationPage
 {
-    /// <summary>Имя диалогового хоста (для консистентности с UrsaView / UrsaWindow).</summary>
     public const string PART_DialogHost = "PART_DialogHost";
 
     public const int DefaultDialogHostZIndex = 1000;
@@ -21,24 +20,18 @@ public class UrsaNavigationPage : NavigationPage
         AvaloniaProperty.Register<UrsaNavigationPage, int>(
             nameof(DialogHostZIndex), defaultValue: DefaultDialogHostZIndex);
 
-    /// <summary>
-    /// true  — OverlayDialogHost покрывает весь TopLevel (окно) как в UrsaWindow;
-    /// false — OverlayDialogHost покрывает только границы этого NavigationPage.
-    /// </summary>
     public bool IsDialogHostTopLevel
     {
         get => GetValue(IsDialogHostTopLevelProperty);
         set => SetValue(IsDialogHostTopLevelProperty, value);
     }
 
-    /// <summary>ZIndex, с которым OverlayDialogHost добавляется в корневую Panel.</summary>
     public int DialogHostZIndex
     {
         get => GetValue(DialogHostZIndexProperty);
         set => SetValue(DialogHostZIndexProperty, value);
     }
 
-    /// <summary>Доступ к созданному OverlayDialogHost (null до ApplyTemplate).</summary>
     public OverlayDialogHost? DialogHost => _dialogHost;
 
     private OverlayDialogHost? _dialogHost;

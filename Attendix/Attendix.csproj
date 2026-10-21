@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <!--Имя сборки — Attendix.Core (имя проекта Attendix не менялось): Attendix занято сборкой Desktop,
-        иначе две Attendix.dll в одной выходной папке и приложение не стартует. Неймспейсы Attendix.* не тронуты-->
         <AssemblyName>Attendix.Core</AssemblyName>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>

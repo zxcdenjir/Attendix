@@ -16,8 +16,5 @@ public partial class HomeView : ContentPage
         DataContext = new HomeViewModel();
     }
 
-    // Флай не закрывается сам при открытии диалога. Прятать его можно только ПОСЛЕ
-    // показа диалога (HomeViewModel вызывает это через диспетчер): синхронное
-    // скрытие в клике мешает Ursa найти хост оверлея, и диалог не открывается
     public void HideSettingsFlyout() => SettingsButton.Flyout?.Hide();
 }

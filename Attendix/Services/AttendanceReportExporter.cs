@@ -84,7 +84,6 @@ public static class AttendanceReportExporter
         ws.Cell(headerRow, 10).Style.Alignment.WrapText = true;
         ws.Row(headerRow).Height = 39;
 
-        // ----- данные -----
         var row = headerRow + 1;
         foreach (var s in rows)
         {

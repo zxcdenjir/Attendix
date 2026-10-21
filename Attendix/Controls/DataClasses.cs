@@ -4,11 +4,6 @@ using Avalonia.Interactivity;
 
 namespace Attendix.Controls;
 
-/// <summary>
-/// Прикреплённые свойства-мосты: булевы значения из VM пробрасываются в классы контрола
-/// (Classes.late / early / absent). Нужны, потому что в ControlTheme нельзя написать
-/// Classes.xxx="{Binding}", а ячейки TableView создаются не в XAML.
-/// </summary>
 public sealed class DataClasses : AvaloniaObject
 {
     public static readonly AttachedProperty<bool> LateProperty =

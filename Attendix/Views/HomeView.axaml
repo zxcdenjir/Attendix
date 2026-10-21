@@ -47,7 +47,6 @@
             <Setter Property="Margin" Value="0" />
         </Style>
 
-        <!-- заливка ячеек; DynamicResource сам обновится при смене темы -->
         <Style Selector="TableViewCell.absent">
             <Setter Property="Background" Value="{DynamicResource AttendixAbsentBrush}" />
         </Style>
@@ -154,26 +153,6 @@
 
             <TableView ItemsSource="{Binding FilteredStudents}" IsVisible="{Binding !DataIsEmpty}"
                        SelectingItemsControl.IsTextSearchEnabled="True">
-                <TableView.ItemContainerTheme>
-                    <ControlTheme TargetType="TableViewRow" BasedOn="{StaticResource {x:Type TableViewRow}}">
-                        <Setter Property="Focusable" Value="False" />
-                        <Style Selector="^:selected /template/ Border#BackgroundBorder">
-                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
-                        </Style>
-                        <Style Selector="^:selected:pointerover /template/ Border#BackgroundBorder">
-                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
-                        </Style>
-                        <Style Selector="^:selected:pressed /template/ Border#BackgroundBorder">
-                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
-                        </Style>
-                        <Style Selector="^:pointerover /template/ Border#BackgroundBorder">
-                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
-                        </Style>
-                        <Style Selector="^:pressed /template/ Border#BackgroundBorder">
-                            <Setter Property="Background" Value="{DynamicResource TableViewRowBackground}" />
-                        </Style>
-                    </ControlTheme>
-                </TableView.ItemContainerTheme>
                 <TableView.Columns>
                     <TableViewColumn Header="Дата" Binding="{Binding Date}" Width="114*">
                         <TableViewColumn.CellTemplate>

@@ -12,7 +12,6 @@ using CsvHelper.Configuration;
 
 namespace Attendix.ViewModels;
 
-/// <summary>Колонка исходного csv для выбора в ComboBox.</summary>
 public sealed class SourceColumn
 {
     public static readonly SourceColumn None = new(-1, "— не импортировать —");
@@ -49,7 +48,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
 
     [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
 
-    // None (— не импортировать —) картой ФИО не считается: у него Index = -1
     public bool HasFullNameMapping => SelectedFullNameColumn is { Index: >= 0 };
 
     public PreviewDataImportViewModel()
@@ -60,7 +58,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
     {
         _csvPath = csvPath;
 
-        // Справочник нужен уже в предпросмотре: подставляем группу по ФИО при разборе строк
         StudentGroupCatalog.EnsureLoaded();
 
         try
@@ -157,7 +154,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(fullName))
             return null;
 
-        // Группа — из справочника (главный источник); кого там нет, показываем как в csv
         var group = GetCell(row, SelectedGroupColumn)?.Trim() ?? string.Empty;
         if (StudentGroupCatalog.TryGetGroup(fullName, out var catalogGroup))
             group = catalogGroup;
@@ -176,7 +172,6 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         };
     }
 
-    /// <summary>Полный импорт по текущему сопоставлению (не только предпросмотр).</summary>
     public List<Student> GetStudents()
     {
         if (SelectedFullNameColumn is not { Index: >= 0 })
