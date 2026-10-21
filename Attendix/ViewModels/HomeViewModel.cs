@@ -13,6 +13,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Controls.Primitives;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CsvHelper;
@@ -114,12 +115,10 @@ public partial class HomeViewModel : ObservableObject
             {
                 Students.Add(record);
             }
-            
-            Groups.Clear();
-            foreach (var student in Students.Select(x => x.Group).Distinct())
-            {
-                Groups.Add(student);
-            }
+
+            // Справочник — главный источник группы: накатываем его на загруженные данные
+            StudentGroupCatalog.ApplyGroups(Students.ToList());
+            RebuildGroups();
 
             ApplyFilters();
         }
@@ -132,7 +131,24 @@ public partial class HomeViewModel : ObservableObject
         IsLoading = false;
     }
 
-    [RelayCommand]
+    // Список групп для фильтра собирается по данным на экране
+    private void RebuildGroups()
+    {
+        Groups.Clear();
+        foreach (var group in Students.Select(s => s.Group).Distinct())
+            Groups.Add(group);
+    }
+
+    // Переименования из справочника применяем и к тем студентам, которых в справочнике нет:
+    // их группа живет только в csv, и без этого они остались бы со старым именем
+    private void ApplyGroupRenames(IReadOnlyList<(string Old, string New)> renames)
+    {
+        foreach (var (oldName, newName) in renames)
+        {
+            foreach (var student in Students.Where(s => s.Group == oldName).ToList())
+                student.Group = newName;
+        }
+    }    [RelayCommand]
     private async Task ImportDataAsync()
     {
         try
@@ -201,6 +217,8 @@ public partial class HomeViewModel : ObservableObject
                 return;
             }
 
+            // Группы по справочнику уже подставлены при разборе строк (и видны в предпросмотре),
+            // поэтому csv пишется как есть
             await Task.Run(() => WriteStudentsToCsv(students, GetFilePath("attendance.csv")));
             try
             {
@@ -222,7 +240,60 @@ public partial class HomeViewModel : ObservableObject
             IsLoading = false;
         }
     }
-    
+
+    [RelayCommand]
+    private async Task OpenStudentGroupsAsync()
+    {
+        try
+        {
+            StudentGroupCatalog.EnsureLoaded();
+            StudentGroupCatalog.CreateBackup();
+            var vm = new StudentGroupsViewModel();
+            var dialogTask = OverlayDialog.ShowStandardAsync<StudentGroupsView, StudentGroupsViewModel>(
+                vm, null, new OverlayDialogOptions
+                {
+                    Title = "Справочник групп",
+                    Buttons = DialogButton.OKCancel,
+                    CanDragMove = true,
+                    CanLightDismiss = false,
+                    CanResize = true,
+                    IsCloseButtonVisible = true,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    StyleClass = "Groups"
+                });
+
+            // Флай прячем уже после показа диалога, на следующем проходе диспетчера:
+            // если скрыть его синхронно в клике, Ursa не находит хост оверлея
+            // и диалог не открывается
+            Dispatcher.UIThread.Post(HomeView.Current.HideSettingsFlyout, DispatcherPriority.Background);
+
+            var result = await dialogTask;
+            if (result != DialogResult.OK)
+                return;
+
+            vm.SaveToCatalog();
+            // Правки справочника сразу отражаются на загруженных данных:
+            // 1) кто есть в справочнике — группа из справочника
+            StudentGroupCatalog.ApplyGroups(Students.ToList());
+            // 2) переименованные группы — и для тех, кого в справочнике нет (группа у них из csv)
+            ApplyGroupRenames(vm.GroupRenames);
+            // 3) фиксируем группы в csv и перечитываем данные: новые экземпляры Student
+            //    гарантируют перерисовку строк таблицы
+            WriteStudentsToCsv(Students.ToList(), GetFilePath("attendance.csv"));
+            await LoadDataAsync();
+
+            // Выбранная группа могла быть переименована — сбрасываем фильтр, чтобы не остаться на пустоте
+            if (SelectedGroup is not null && !Groups.Contains(SelectedGroup, StringComparer.CurrentCultureIgnoreCase))
+                SelectedGroup = null;
+
+            MainView.Current.ShowToast("Справочник групп сохранен", NotificationType.Success);
+        }
+        catch (Exception ex)
+        {
+            MainView.Current.ShowToast(ex.InnerException?.Message ?? ex.Message, NotificationType.Error);
+        }
+    }
+
     [RelayCommand]
     private async Task ExportToXlsxAsync()
     {

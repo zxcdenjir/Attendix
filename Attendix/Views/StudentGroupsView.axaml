@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Attendix.ViewModels"
+             xmlns:services="clr-namespace:Attendix.Services"
+              xmlns:controls="clr-namespace:Attendix.Controls"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="520"
+             x:Class="Attendix.Views.StudentGroupsView"
+             x:DataType="vm:StudentGroupsViewModel">
+
+    <UserControl.Resources>
+        <!-- Конвертер не даёт комбобоксу записать null в группу при сбросе выделения -->
+        <controls:GroupSelectionConverter x:Key="GroupSelection" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="10">
+
+        <!-- Управление группами: над строкой поиска и комбобоксом -->
+        <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" ColumnSpacing="8">
+            <TextBox PlaceholderText="Введите имя группы"
+                     Text="{Binding NewGroupName, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="1" VerticalAlignment="Stretch"
+                    ToolTip.Tip="Переименовать выбранную группу (все студенты переносятся)"
+                    Command="{Binding RenameGroupCommand}"
+                    Content="Переименовать" />
+            <Button Grid.Column="2" VerticalAlignment="Stretch"
+                    ToolTip.Tip="Добавить группу по имени слева"
+                    Command="{Binding AddGroupCommand}"
+                    Content="+ Группа" />
+            <Button Grid.Column="3" VerticalAlignment="Stretch" Classes="Danger"
+                    ToolTip.Tip="Удалить пустую группу"
+                    Command="{Binding RemoveGroupCommand}"
+                    Content="Удалить группу" />
+            <Button Grid.Column="4" VerticalAlignment="Stretch"
+                    ToolTip.Tip="Восстановить справочник из резервной копии"
+                    Command="{Binding RestoreBackupCommand}">
+                <avalonia:MaterialIcon Kind="Restore" />
+            </Button>
+        </Grid>
+
+        <!-- Группа и поиск по всему справочнику -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8">
+            <ComboBox MinWidth="220"
+                      ItemsSource="{Binding Groups}"
+                      SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+            <TextBox Grid.Column="1" PlaceholderText="Поиск в группе"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Classes="clearButton" />
+        </Grid>
+        
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Hidden">
+            <ItemsControl ItemsSource="{Binding GroupStudents}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="10"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="services:StudentGroupRecord">
+                        <Grid ColumnDefinitions="*, 200, Auto" ColumnSpacing="8" Margin="0">
+                            <TextBox PlaceholderText="ФИО"
+                                     Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding GroupOptions}"
+                                      SelectedItem="{Binding Group, Mode=TwoWay, Converter={StaticResource GroupSelection}}" />
+                            <Button Grid.Column="2" x:CompileBindings="False"
+                                    ToolTip.Tip="Удалить студента"
+                                    Command="{Binding $parent[ItemsControl].DataContext.RemoveStudentCommand}"
+                                    CommandParameter="{Binding}">
+                                <avalonia:MaterialIcon Kind="Delete" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+            <TextBox PlaceholderText="ФИО нового студента"
+                     Text="{Binding NewStudentName, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="1" VerticalAlignment="Stretch"
+                    ToolTip.Tip="Добавить студента в выбранную группу"
+                    Command="{Binding AddStudentCommand}">
+                <avalonia:MaterialIcon Kind="Add" />
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

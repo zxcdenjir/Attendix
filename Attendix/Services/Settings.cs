@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Attendix.Models;
@@ -19,6 +20,8 @@ public partial class Settings : ObservableObject
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
+        // Кириллица (например, путь экспорта) не должна превращаться в \u0421...
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         Converters = { new ThemeVariantJsonConverter() }
     };
 

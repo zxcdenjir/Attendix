@@ -83,6 +83,14 @@
             <Setter Property="MinWidth" Value="880" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
+        
+        <Style Selector="u|StandardDialogControl.Groups">
+            <Setter Property="Height" Value="705" />
+            <Setter Property="Width" Value="641" />
+            <Setter Property="MinHeight" Value="420" />
+            <Setter Property="MinWidth" Value="641" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
 
         <Style Selector="u|MessageBoxControl:modal">
             <Setter Property="CornerRadius" Value="10"></Setter>

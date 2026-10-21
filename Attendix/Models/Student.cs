@@ -19,6 +19,7 @@ public partial class Student : ObservableObject
     public partial string FullName { get; set; } = null!;
 
     [NotMapped]
+    [Ignore]
     public string Attendance
     {
         get
@@ -65,23 +66,35 @@ public partial class Student : ObservableObject
     public partial TimeOnly LastDeparture { get; set; }
 
     [NotMapped]
+    [Ignore]
     public string FirstArrivalDisplay => FirstArrival == TimeOnly.MinValue ? "(нет)" : FirstArrival.ToString("HH:mm");
 
     [NotMapped]
+    [Ignore]
     public string LastDepartureDisplay =>
         LastDeparture == TimeOnly.MinValue ? "(нет)" : LastDeparture.ToString("HH:mm");
 
-    [NotMapped] public bool IsAbsent => FirstArrival == TimeOnly.MinValue && LastDeparture == TimeOnly.MinValue;
+    [NotMapped]
+    [Ignore]
+    public bool IsAbsent => FirstArrival == TimeOnly.MinValue && LastDeparture == TimeOnly.MinValue;
 
     [NotMapped]
+    [Ignore]
     public bool IsLateArrival => FirstArrival != TimeOnly.MinValue && FirstArrival >= Settings.Current.StartOfClasses;
 
     [NotMapped]
+    [Ignore]
     public bool IsEarlyLeave => LastDeparture != TimeOnly.MinValue && LastDeparture < Settings.Current.EndOfClasses;
 
-    [NotMapped] public bool LateHighlight => IsLateArrival && Settings.Current.HighlightCells;
-    [NotMapped] public bool EarlyHighlight => IsEarlyLeave && Settings.Current.HighlightCells;
-    [NotMapped] public bool AbsentHighlight => IsAbsent && Settings.Current.HighlightCells;
+    [NotMapped]
+    [Ignore]
+    public bool LateHighlight => IsLateArrival && Settings.Current.HighlightCells;
+    [NotMapped]
+    [Ignore]
+    public bool EarlyHighlight => IsEarlyLeave && Settings.Current.HighlightCells;
+    [NotMapped]
+    [Ignore]
+    public bool AbsentHighlight => IsAbsent && Settings.Current.HighlightCells;
 
     public void RefreshAttendance()
     {

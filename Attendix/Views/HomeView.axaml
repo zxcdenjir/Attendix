@@ -63,7 +63,8 @@
               IsEnabled="{Binding IsPanelEnabled}">
             <TextBox PlaceholderText="Поиск" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Classes="clearButton" />
-            <u:Badge Grid.Column="1" VerticalAlignment="Stretch" Header="{Binding ActiveFilterBadge}" CornerPosition="TopRight">
+            <u:Badge Grid.Column="1" VerticalAlignment="Stretch" Header="{Binding ActiveFilterBadge}"
+                     CornerPosition="TopRight">
                 <DropDownButton VerticalAlignment="Stretch" ToolTip.Tip="Фильтры" BorderThickness="0">
                     <avalonia:MaterialIcon Kind="Filter" VerticalAlignment="Stretch" />
                     <DropDownButton.Flyout>
@@ -105,31 +106,34 @@
                     Classes="Danger">
                 <avalonia:MaterialIcon Kind="ClearCircle" VerticalAlignment="Stretch" />
             </Button>
-            <DropDownButton Grid.Column="5" VerticalAlignment="Stretch" ToolTip.Tip="Настройки" BorderThickness="0">
+            <DropDownButton x:Name="SettingsButton" Grid.Column="5" VerticalAlignment="Stretch" ToolTip.Tip="Настройки" BorderThickness="0">
                 <avalonia:MaterialIcon Kind="Settings" VerticalAlignment="Stretch" />
                 <DropDownButton.Flyout>
                     <Flyout>
-                        <u:Form x:DataType="services:Settings"
-                                Margin="5"
-                                DataContext="{x:Static services:Settings.Current}"
-                                HorizontalAlignment="Stretch" MinWidth="150">
-                            <u:Form.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="10" />
-                                </ItemsPanelTemplate>
-                            </u:Form.ItemsPanel>
-                            <TextBlock Text="Настройки" FontWeight="Bold" Focusable="True" />
-                            <u:TimeOnlyPicker u:FormItem.Label="Начало уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
-                                              CornerRadius="10" Padding="10"
-                                              SelectedTime="{Binding StartOfClasses, Mode=TwoWay}" />
-                            <u:TimeOnlyPicker u:FormItem.Label="Конец уроков" NeedConfirmation="True"
-                                              DisplayFormat="HH:mm" PanelFormat="HH mm"
-                                              CornerRadius="10" Padding="10"
-                                              SelectedTime="{Binding EndOfClasses, Mode=TwoWay}" />
-                            <CheckBox Content="Подсвечивать клетки"
-                                      IsChecked="{Binding HighlightCells, Mode=TwoWay}" />
-                        </u:Form>
+                        <StackPanel Margin="5" Spacing="10" MinWidth="170">
+                            <u:Form x:DataType="services:Settings"
+                                    DataContext="{x:Static services:Settings.Current}"
+                                    HorizontalAlignment="Stretch">
+                                <u:Form.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="10" />
+                                    </ItemsPanelTemplate>
+                                </u:Form.ItemsPanel>
+                                <TextBlock Text="Настройки" FontWeight="Bold" Focusable="True" />
+                                <u:TimeOnlyPicker u:FormItem.Label="Начало уроков" NeedConfirmation="True"
+                                                  DisplayFormat="HH:mm" PanelFormat="HH mm"
+                                                  CornerRadius="10" Padding="10"
+                                                  SelectedTime="{Binding StartOfClasses, Mode=TwoWay}" />
+                                <u:TimeOnlyPicker u:FormItem.Label="Конец уроков" NeedConfirmation="True"
+                                                  DisplayFormat="HH:mm" PanelFormat="HH mm"
+                                                  CornerRadius="10" Padding="10"
+                                                  SelectedTime="{Binding EndOfClasses, Mode=TwoWay}" />
+                                <CheckBox Content="Подсвечивать клетки"
+                                          IsChecked="{Binding HighlightCells, Mode=TwoWay}" />
+                            </u:Form>
+                            <Button Content="Справочник групп" HorizontalAlignment="Stretch"
+                                    Command="{Binding OpenStudentGroupsCommand}" />
+                        </StackPanel>
                     </Flyout>
                 </DropDownButton.Flyout>
             </DropDownButton>

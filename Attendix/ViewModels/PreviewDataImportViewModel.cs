@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Attendix.Models;
+using Attendix.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -57,6 +58,9 @@ public partial class PreviewDataImportViewModel : ViewModelBase
     public PreviewDataImportViewModel(string csvPath)
     {
         _csvPath = csvPath;
+
+        // Справочник нужен уже в предпросмотре: подставляем группу по ФИО при разборе строк
+        StudentGroupCatalog.EnsureLoaded();
 
         try
         {
@@ -152,10 +156,15 @@ public partial class PreviewDataImportViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(fullName))
             return null;
 
+        // Группа — из справочника (главный источник); кого там нет, показываем как в csv
+        var group = GetCell(row, SelectedGroupColumn)?.Trim() ?? string.Empty;
+        if (StudentGroupCatalog.TryGetGroup(fullName, out var catalogGroup))
+            group = catalogGroup;
+
         return new Student
         {
             Date = TryParseDateOnly(GetCell(row, SelectedDateColumn), out var date) ? date : default,
-            Group = GetCell(row, SelectedGroupColumn)?.Trim() ?? string.Empty,
+            Group = group,
             FullName = fullName,
             FirstArrival = TryParseTimeOnly(GetCell(row, SelectedFirstArrivalColumn), out var arrival)
                 ? arrival
